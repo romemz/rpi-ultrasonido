@@ -26,5 +26,22 @@ if ($exitCode !== 0) {
 	exit;
 }
 
-echo trim(implode("\n", $output));
+$measurementLine = '';
+for ($index = count($output) - 1; $index >= 0; $index--) {
+	$line = trim($output[$index]);
+	if ($line === '') {
+		continue;
+	}
+
+	if (stripos($line, 'Distancia:') !== false || stripos($line, 'Fuera de Rango') !== false) {
+		$measurementLine = $line;
+		break;
+	}
+
+	if ($measurementLine === '') {
+		$measurementLine = $line;
+	}
+}
+
+echo $measurementLine;
 ?>
