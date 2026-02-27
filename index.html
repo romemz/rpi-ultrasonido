@@ -57,6 +57,13 @@
 					$("#medir").show('slow'); // Muestra el boton medir
 					$("#load-midiendo").hide('slow'); // oculta el load
 					$('#set-8 h1').text('Volver Medir'); // cambia de texto a "Volver a Medir"
+				},
+				error: function(xhr){
+					var errorMsg = xhr.responseText ? xhr.responseText : 'Error de comunicacion con el servidor';
+					$('#salida').show('slow');
+					$('#salida h1').text(errorMsg);
+					$("#medir").show('slow');
+					$("#load-midiendo").hide('slow');
 				}
 			}); // fin ajax
 
