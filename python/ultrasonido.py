@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 # pyright: reportMissingImports=false
 """
-Tomado en gran parte de:
-https://electrosome.com/hc-sr04-ultrasonic-sensor-raspberry-pi/
+
 
 Formula para calcular la distancia
 
