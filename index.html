@@ -363,6 +363,11 @@
 
   var historial = [];
 
+  function obtenerUrlMedir() {
+    var path = window.location.pathname.toLowerCase();
+    return path.indexOf('/php/') !== -1 ? 'medir.php' : 'php/medir.php';
+  }
+
   // ── Click en el botón ──
   $('#btn-medir').click(function () {
     var $btn = $(this);
@@ -375,7 +380,7 @@
 
     // ── AJAX: igual que el original, solo cambia el handler de éxito ──
     $.ajax({
-      url: 'php/medir.php',
+      url: obtenerUrlMedir(),
       type: 'POST',
 
       success: function (response) {

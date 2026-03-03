@@ -1,481 +1,54 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Medidor Inteligente – UTC</title>
+<?php
+header('Content-Type: text/plain; charset=UTF-8');
 
-  <!-- Fuentes -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo 'Método no permitido';
+    exit;
+}
 
-  <!-- jQuery (igual que el original) -->
-  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+$pythonScript = realpath(__DIR__ . '/../python/ultrasonido.py');
 
-  <style>
-    /* ── VARIABLES ── */
-    :root {
-      --azul:   #0a74da;
-      --azul2:  #0550a0;
-      --cyan:   #00d4ff;
-      --fondo:  #060d1a;
-      --panel:  #0d1b2e;
-      --borde:  #163352;
-      --texto:  #cde7ff;
-      --critico:#ff4757;
-      --ok:     #2ed573;
-      --warn:   #ffa502;
+if ($pythonScript === false || !file_exists($pythonScript)) {
+    http_response_code(500);
+    echo 'No se encontró el script de medición';
+    exit;
+}
+
+$pythonCandidates = ['/usr/bin/python3', 'python3'];
+$output = [];
+$exitCode = 1;
+$ran = false;
+
+foreach ($pythonCandidates as $pythonBin) {
+    $output = [];
+    $exitCode = 1;
+    $command = escapeshellcmd($pythonBin) . ' ' . escapeshellarg($pythonScript) . ' 2>&1';
+
+    exec($command, $output, $exitCode);
+
+    if (!empty($output) || $exitCode === 0) {
+        $ran = true;
+        break;
     }
+}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+if (!$ran || empty($output)) {
+    http_response_code(500);
+    echo 'No se pudo ejecutar la medición';
+    exit;
+}
 
-    body {
-      background: var(--fondo);
-      font-family: 'Inter', sans-serif;
-      color: var(--texto);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+$lineas = array_values(array_filter(array_map('trim', $output), static function ($linea) {
+    return $linea !== '';
+}));
 
-    /* ── HEADER ── */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 32px;
-      background: var(--panel);
-      border-bottom: 1px solid var(--borde);
-    }
-    .logo-area { display: flex; align-items: center; gap: 12px; }
-    .logo-circle {
-      width: 46px; height: 46px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--azul), var(--cyan));
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Rajdhani', sans-serif; font-weight: 700;
-      font-size: 16px; color: #fff; flex-shrink: 0;
-    }
-    .logo-text h1 {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 17px; font-weight: 700;
-      color: #fff; letter-spacing: 1px;
-    }
-    .logo-text p { font-size: 11px; color: #7aadcc; }
+if (empty($lineas)) {
+    http_response_code(500);
+    echo 'Sin respuesta del sensor';
+    exit;
+}
 
-    .status-bar { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #7aadcc; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+$ultimo = end($lineas);
 
-    /* ── LAYOUT ── */
-    main {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 24px;
-      padding: 28px 32px;
-      max-width: 1100px;
-      width: 100%;
-      margin: 0 auto;
-    }
-    @media (max-width: 720px) {
-      main { grid-template-columns: 1fr; padding: 16px; }
-      header { padding: 12px 16px; }
-    }
-
-    /* ── TARJETA ── */
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--borde);
-      border-radius: 16px;
-      padding: 24px;
-    }
-    .card-title {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 13px; font-weight: 600;
-      letter-spacing: 2px; text-transform: uppercase;
-      color: var(--cyan); margin-bottom: 20px;
-    }
-
-    /* ── TINACO SVG ── */
-    .tinaco-wrap {
-      display: flex; flex-direction: column; align-items: center; gap: 20px;
-    }
-    .tinaco-svg-area { position: relative; width: 200px; }
-    .tinaco-svg-area svg { width: 100%; }
-    #agua-fill { transition: height 1.2s ease, y 1.2s ease; }
-    .wave { animation: waveMove 3s linear infinite; transform-origin: center; }
-    @keyframes waveMove { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-
-    /* ── PORCENTAJE ── */
-    .pct-display { text-align: center; }
-    .pct-display .num {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 72px; font-weight: 700; line-height: 1;
-      background: linear-gradient(135deg, var(--cyan), var(--azul));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      transition: all .5s;
-    }
-    .pct-display .lbl { font-size: 13px; color: #7aadcc; margin-top: 4px; }
-
-    /* ── BADGE DISTANCIA ── */
-    .dist-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(0,212,255,.08);
-      border: 1px solid rgba(0,212,255,.2);
-      border-radius: 30px; padding: 8px 18px;
-      font-size: 14px; color: var(--cyan);
-    }
-    .dist-badge .val {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 20px; font-weight: 700;
-    }
-
-    /* ── BOTÓN ── */
-    .btn-medir {
-      width: 100%; padding: 14px;
-      background: linear-gradient(135deg, var(--azul2), var(--azul));
-      border: none; border-radius: 12px;
-      color: #fff; font-family: 'Rajdhani', sans-serif;
-      font-size: 18px; font-weight: 700; letter-spacing: 1px;
-      cursor: pointer; overflow: hidden; position: relative;
-      transition: transform .15s, box-shadow .15s;
-      box-shadow: 0 4px 20px rgba(10,116,218,.4);
-    }
-    .btn-medir:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(10,116,218,.6); }
-    .btn-medir:active { transform: translateY(0); }
-    .btn-medir:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-
-    /* ── LOADER ── */
-    .loader-wrap { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 16px 0; }
-    .loader-wrap.show { display: flex; }
-    .spinner {
-      width: 36px; height: 36px; border-radius: 50%;
-      border: 3px solid var(--borde); border-top-color: var(--cyan);
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loader-wrap p { font-size: 13px; color: #7aadcc; }
-
-    /* ── ALERTA ── */
-    .alerta {
-      display: none; margin-top: 12px;
-      border-radius: 10px; padding: 12px 16px;
-      font-size: 13px; font-weight: 600;
-      border: 1px solid transparent;
-    }
-    .alerta.show    { display: block; }
-    .alerta.critico { background: rgba(255,71,87,.12);  border-color: var(--critico); color: var(--critico); }
-    .alerta.ok      { background: rgba(46,213,115,.10); border-color: var(--ok);      color: var(--ok); }
-    .alerta.warn    { background: rgba(255,165,2,.10);  border-color: var(--warn);    color: var(--warn); }
-    .alerta.error   { background: rgba(255,71,87,.12);  border-color: var(--critico); color: var(--critico); }
-
-    /* ── PANEL DERECHO ── */
-    .right-col { display: flex; flex-direction: column; gap: 20px; }
-
-    /* historial */
-    .historial-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .historial-list li {
-      display: flex; justify-content: space-between; align-items: center;
-      background: rgba(255,255,255,.03); border-radius: 8px; padding: 8px 12px;
-      font-size: 13px; border-left: 3px solid var(--azul);
-    }
-    .historial-list li .time { color: #7aadcc; font-size: 11px; }
-    .historial-list li .val  { font-family: 'Rajdhani', sans-serif; font-size: 16px; color: var(--cyan); }
-    .empty-hist { font-size: 13px; color: #456; text-align: center; padding: 16px 0; }
-
-    /* info sistema */
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .info-item {
-      background: rgba(255,255,255,.03); border-radius: 10px;
-      padding: 12px; border: 1px solid var(--borde);
-    }
-    .info-item .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #7aadcc; margin-bottom: 4px; }
-    .info-item .val { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
-
-    /* niveles de alerta info */
-    .nivel-ref { display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
-    .nivel-ref div { display: flex; align-items: center; gap: 8px; }
-    .nivel-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-
-    /* ── FOOTER ── */
-    footer {
-      text-align: center; padding: 14px;
-      font-size: 11px; color: #2a4a66;
-      border-top: 1px solid var(--borde);
-    }
-  </style>
-</head>
-<body>
-
-<!-- ══════════ HEADER ══════════ -->
-<header>
-  <div class="logo-area">
-    <div class="logo-circle">UTC</div>
-    <div class="logo-text">
-      <h1>MEDIDOR INTELIGENTE</h1>
-      <p>Niveles en Tinacos · Universidad Tecnológica de Coahuila</p>
-    </div>
-  </div>
-  <div class="status-bar">
-    <div class="dot"></div>
-    <span>Sistema activo</span>
-  </div>
-</header>
-
-<!-- ══════════ MAIN ══════════ -->
-<main>
-
-  <!-- ── COLUMNA IZQUIERDA ── -->
-  <div style="display:flex;flex-direction:column;gap:20px;">
-
-    <!-- Tarjeta: visualización del tinaco -->
-    <div class="card">
-      <div class="card-title">📡 Nivel actual del tinaco</div>
-      <div class="tinaco-wrap">
-
-        <!-- SVG Tinaco -->
-        <div class="tinaco-svg-area">
-          <svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <clipPath id="clip-tinaco">
-                <rect x="20" y="40" width="160" height="200" rx="8"/>
-              </clipPath>
-              <linearGradient id="grad-agua" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.9"/>
-                <stop offset="100%" stop-color="#0550a0" stop-opacity="1"/>
-              </linearGradient>
-            </defs>
-            <!-- tapa -->
-            <ellipse cx="100" cy="42" rx="82" ry="12" fill="#163352" stroke="#1e4a78" stroke-width="1.5"/>
-            <!-- cuerpo -->
-            <rect x="20" y="40" width="160" height="200" rx="8" fill="#0d1b2e" stroke="#1e4a78" stroke-width="1.5"/>
-            <!-- agua recortada -->
-            <g clip-path="url(#clip-tinaco)">
-              <rect id="agua-fill" x="20" y="240" width="160" height="0" fill="url(#grad-agua)" opacity="0.85"/>
-              <path id="wave-path" class="wave"
-                d="M0 240 Q25 233 50 240 Q75 247 100 240 Q125 233 150 240 Q175 247 200 240 Q225 233 250 240 Q275 247 300 240 L300 260 L0 260 Z"
-                fill="url(#grad-agua)" opacity="0.5"/>
-            </g>
-            <!-- marcas % -->
-            <line x1="176" y1="62"  x2="183" y2="62"  stroke="#1e4a78" stroke-width="1"/>
-            <line x1="176" y1="112" x2="183" y2="112" stroke="#1e4a78" stroke-width="1"/>
-            <line x1="176" y1="162" x2="183" y2="162" stroke="#1e4a78" stroke-width="1"/>
-            <line x1="176" y1="212" x2="183" y2="212" stroke="#1e4a78" stroke-width="1"/>
-            <text x="186" y="65"  fill="#7aadcc" font-size="8" font-family="Inter">100%</text>
-            <text x="186" y="115" fill="#7aadcc" font-size="8" font-family="Inter">75%</text>
-            <text x="186" y="165" fill="#7aadcc" font-size="8" font-family="Inter">50%</text>
-            <text x="186" y="215" fill="#7aadcc" font-size="8" font-family="Inter">25%</text>
-            <!-- línea de nivel -->
-            <line id="nivel-line" x1="20" y1="240" x2="180" y2="240"
-                  stroke="#00d4ff" stroke-width="1" stroke-dasharray="4 3" opacity="0.6"/>
-            <!-- base -->
-            <rect x="60" y="240" width="80" height="10" rx="4" fill="#163352"/>
-            <rect x="80" y="250" width="40" height="6"  rx="3" fill="#0d1b2e" stroke="#1e4a78" stroke-width="1"/>
-          </svg>
-        </div>
-
-        <!-- Porcentaje -->
-        <div class="pct-display">
-          <div class="num" id="pct-num">–</div>
-          <div class="lbl">Nivel de llenado</div>
-        </div>
-
-        <!-- Distancia raw del sensor -->
-        <div class="dist-badge">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
-          </svg>
-          Resultado: <span class="val" id="dist-val">—</span>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Tarjeta: botón de acción -->
-    <div class="card">
-      <div class="card-title">⚡ Control de medición</div>
-
-      <button class="btn-medir" id="btn-medir">MEDIR AHORA</button>
-
-      <div class="loader-wrap" id="load-midiendo">
-        <div class="spinner"></div>
-        <p>Midiendo con sensor ultrasónico…</p>
-      </div>
-
-      <div class="alerta" id="alerta"></div>
-    </div>
-
-  </div>
-
-  <!-- ── COLUMNA DERECHA ── -->
-  <div class="right-col">
-
-    <!-- Info del sistema -->
-    <div class="card">
-      <div class="card-title">🔧 Info del sistema</div>
-      <div class="info-grid">
-        <div class="info-item"><div class="lbl">Sensor</div><div class="val">HC-SR04</div></div>
-        <div class="info-item"><div class="lbl">Hardware</div><div class="val">RPi</div></div>
-        <div class="info-item"><div class="lbl">TRIG pin</div><div class="val">GPIO 23</div></div>
-        <div class="info-item"><div class="lbl">ECHO pin</div><div class="val">GPIO 24</div></div>
-        <div class="info-item"><div class="lbl">Rango</div><div class="val">2–400cm</div></div>
-        <div class="info-item"><div class="lbl">Vel. sonido</div><div class="val">343 m/s</div></div>
-      </div>
-    </div>
-
-    <!-- Historial de lecturas -->
-    <div class="card" style="flex:1">
-      <div class="card-title">📋 Historial de lecturas</div>
-      <ul class="historial-list" id="historial">
-        <li class="empty-hist" style="border:none">Sin lecturas aún</li>
-      </ul>
-    </div>
-
-    <!-- Referencia de niveles -->
-    <div class="card">
-      <div class="card-title">🚨 Niveles de alerta</div>
-      <div class="nivel-ref">
-        <div><span class="nivel-dot" style="background:var(--critico)"></span> Crítico: ≤ 25% — Notificación urgente</div>
-        <div><span class="nivel-dot" style="background:var(--warn)"></span>    Precaución: 26% – 50%</div>
-        <div><span class="nivel-dot" style="background:var(--ok)"></span>      Normal: &gt; 50%</div>
-      </div>
-    </div>
-
-  </div>
-</main>
-
-<!-- ══════════ FOOTER ══════════ -->
-<footer>
-  Universidad Tecnológica de Coahuila · Ramos Arizpe, Coahuila ·
-  Medidor Inteligente de Niveles en Tinacos — TSU Desarrollo de Software · 2025
-</footer>
-
-<!-- ══════════ SCRIPT ══════════ -->
-<script>
-  // ─────────────────────────────────────────────────────────
-  //  AJUSTA este valor al alto real de tu tinaco en cm.
-  //  El sensor mide la distancia desde la tapa hasta el agua,
-  //  así que: % llenado = (1 - distancia / TINACO_ALTO_CM) * 100
-  // ─────────────────────────────────────────────────────────
-  var TINACO_ALTO_CM = 100;
-
-  var historial = [];
-
-  // ── Click en el botón ──
-  $('#btn-medir').click(function () {
-    var $btn = $(this);
-
-    // Ocultar resultados anteriores y mostrar loader
-    $btn.prop('disabled', true);
-    $('#load-midiendo').addClass('show');
-    ocultarAlerta();
-    $('#dist-val').text('—');
-
-    // ── AJAX: igual que el original, solo cambia el handler de éxito ──
-    $.ajax({
-      url: 'php/medir.php',
-      type: 'POST',
-
-      success: function (data) {
-        // medir.php ahora devuelve JSON
-        if (data.ok) {
-          procesarRespuesta(data);
-        } else {
-          mostrarAlerta('error', '⚠️ ' + (data.error || 'Error desconocido'));
-          $('#dist-val').text(data.error || 'Error');
-        }
-      },
-
-      error: function (xhr) {
-        var msg = xhr.responseText ? xhr.responseText : 'Error de comunicación con el servidor';
-        mostrarAlerta('error', '⚠️ ' + msg);
-        $('#dist-val').text(msg);
-      },
-
-      dataType: 'json',
-
-      complete: function () {
-        $btn.prop('disabled', false);
-        $('#load-midiendo').removeClass('show');
-      }
-    });
-  });
-
-  // ── Procesa la respuesta JSON del servidor ──
-  function procesarRespuesta(data) {
-    $('#dist-val').text(data.texto);
-
-    if (data.distancia !== null) {
-      actualizarTinaco(data.porcentaje);
-      actualizarAlerta(data.porcentaje, data.estado);
-      agregarHistorial(data.texto, data.porcentaje);
-    } else {
-      mostrarAlerta('error', '⚠️ ' + data.texto);
-    }
-  }
-
-  // ── Anima el tinaco SVG ──
-  function actualizarTinaco(pct) {
-    $('#pct-num').text(pct + '%');
-
-    // Área útil del SVG: y=40 (tapa) → y=240 (base) = 200px
-    var alturaAgua = Math.round(pct * 2);   // 0–200
-    var yAgua      = 240 - alturaAgua;
-
-    $('#agua-fill').attr({ y: yAgua, height: alturaAgua });
-    $('#nivel-line').attr({ y1: yAgua, y2: yAgua });
-    $('#wave-path').attr('d',
-      'M0 ' + yAgua +
-      ' Q25 ' + (yAgua - 7) + ' 50 ' + yAgua +
-      ' Q75 ' + (yAgua + 7) + ' 100 ' + yAgua +
-      ' Q125 ' + (yAgua - 7) + ' 150 ' + yAgua +
-      ' Q175 ' + (yAgua + 7) + ' 200 ' + yAgua +
-      ' Q225 ' + (yAgua - 7) + ' 250 ' + yAgua +
-      ' Q275 ' + (yAgua + 7) + ' 300 ' + yAgua +
-      ' L300 260 L0 260 Z'
-    );
-  }
-
-  // ── Muestra alerta según nivel ──
-  function actualizarAlerta(pct, estado) {
-    var map = {
-      critico: ['critico', '🚨 Nivel CRÍTICO: ' + pct + '% — Se requiere acción inmediata'],
-      bajo:    ['warn',    '⚠️ Nivel BAJO: '    + pct + '% — Considera rellenar pronto'],
-      normal:  ['ok',      '✅ Nivel NORMAL: '  + pct + '% — Sin problema']
-    };
-    var entry = map[estado] || ['ok', '✅ ' + pct + '%'];
-    mostrarAlerta(entry[0], entry[1]);
-  }
-
-  // ── Agrega entrada al historial ──
-  function agregarHistorial(raw, pct) {
-    var now = new Date();
-    var t   = [now.getHours(), now.getMinutes(), now.getSeconds()]
-              .map(function (n) { return String(n).padStart(2, '0'); }).join(':');
-    historial.unshift({ time: t, raw: raw, pct: pct });
-    if (historial.length > 8) historial.pop();
-
-    var $ul = $('#historial').empty();
-    $.each(historial, function (_, item) {
-      $ul.append(
-        '<li>' +
-          '<span>' + item.raw + '</span>' +
-          '<span class="val">' + item.pct + '%</span>' +
-          '<span class="time">' + item.time + '</span>' +
-        '</li>'
-      );
-    });
-  }
-
-  function mostrarAlerta(tipo, msg) {
-    $('#alerta').removeClass().addClass('alerta show ' + tipo).text(msg);
-  }
-  function ocultarAlerta() {
-    $('#alerta').removeClass('show');
-  }
-</script>
-
-</body>
-</html>
+echo $ultimo;
