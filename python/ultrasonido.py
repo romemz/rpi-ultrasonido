@@ -1,65 +1,68 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# pyright: reportMissingImports=false
-"""
-Tomado en gran parte de:
-https://electrosome.com/hc-sr04-ultrasonic-sensor-raspberry-pi/
-
-Formula para calcular la distancia
-
-d = V * (t / 2)
-V = velocidad del sonido
-t = tiempo, que tarda la señal de ir del emisor al obstaculo y volver al receptor
-"""
 
 import importlib
 import time
-
-# Importar helper DB (puede lanzar si falta)
-from db_sqlite import insert_measurement
+import sys
+import mysql.connector
 
 GPIO = importlib.import_module("RPi.GPIO")
+
 GPIO.setmode(GPIO.BCM)
 
-TRIG = 23  # pin 23 como TRIG
-ECHO = 24  # pin 24 como ECHO
-V = 34300  # Velocidad del sonido 34300 cm/s
+TRIG = 23
+ECHO = 24
+V = 34300  # Velocidad sonido cm/s
 
-print("Medicion de la distancia en curso")
+GPIO.setup(TRIG, GPIO.OUT)
+GPIO.setup(ECHO, GPIO.IN)
 
-GPIO.setup(TRIG, GPIO.OUT)  # TRIG como salida
-GPIO.setup(ECHO, GPIO.IN)  # ECHO como entrada
+GPIO.output(TRIG, False)
+time.sleep(2)
 
-GPIO.output(TRIG, False)  # TRIG en estado bajo
-print("Espere que el sensor se estabilice")
-time.sleep(2)  # Esperar 2 segundos
+GPIO.output(TRIG, True)
+time.sleep(0.00001)
+GPIO.output(TRIG, False)
 
-GPIO.output(TRIG, True)  # TRIG en estado alto
-time.sleep(0.00001)  # Delay de 0.00001 segundos
-GPIO.output(TRIG, False)  # TRIG en estado bajo
+while GPIO.input(ECHO) == 0:
+    pulse_start = time.time()
 
-while GPIO.input(ECHO) == 0:  # Comprueba si ECHO está en estado bajo
-    pulse_start = time.time()  # Guarda el tiempo transcurrido en estado bajo
-
-while GPIO.input(ECHO) == 1:  # Comprueba si ECHO está en estado alto
-    pulse_end = time.time()  # Guarda el tiempo transcurrido en estado alto
+while GPIO.input(ECHO) == 1:
+    pulse_end = time.time()
 
 t = pulse_end - pulse_start
-distancia = t * (V / 2)
-distancia = round(distancia, 2)
+distancia = round(t * (V / 2), 2)
 
+if 2 < distancia < 400:
+    status = "OK"
+    measurement_text = f"Distancia: {distancia} cm"
+else:
+    status = "OUT_OF_RANGE"
+    measurement_text = "Fuera de Rango"
+    distancia = None
+
+# -------- Conexión MariaDB --------
 try:
-    if 2 < distancia < 400:  # Comprueba si la distancia está dentro del rango
-        print("Distancia:", distancia, "cm")
-        try:
-            insert_measurement(distancia, 'ok', f'Distancia: {distancia} cm')
-        except Exception as e:
-            print("Error guardando en DB:", e)
-    else:
-        print("Fuera de Rango")
-        try:
-            insert_measurement(None, 'out_of_range', 'Fuera de Rango')
-        except Exception as e:
-            print("Error guardando en DB:", e)
-finally:
-    GPIO.cleanup()  # Limpia los pines
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="rpi_user",
+        password="1234",
+        database="rpi_ultrasonido"
+    )
+
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO measurements (distance_cm, status, raw_output) VALUES (%s, %s, %s)",
+        (distancia, status, measurement_text)
+    )
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+except Exception as e:
+    print("Error DB:", e, file=sys.stderr)
+
+print(measurement_text)
+GPIO.cleanup()
