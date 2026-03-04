@@ -15,8 +15,10 @@ t = tiempo, que tarda la señal de ir del emisor al obstaculo y volver al recept
 import importlib
 import time
 
-GPIO = importlib.import_module("RPi.GPIO")
+# Importar helper DB (puede lanzar si falta)
+from db_sqlite import insert_measurement
 
+GPIO = importlib.import_module("RPi.GPIO")
 GPIO.setmode(GPIO.BCM)
 
 TRIG = 23  # pin 23 como TRIG
@@ -46,9 +48,18 @@ t = pulse_end - pulse_start
 distancia = t * (V / 2)
 distancia = round(distancia, 2)
 
-if 2 < distancia < 400:  # Comprueba si la distancia está dentro del rango
-    print("Distancia:", distancia, "cm")
-else:
-    print("Fuera de Rango")
-
-GPIO.cleanup()  # Limpia los pines
+try:
+    if 2 < distancia < 400:  # Comprueba si la distancia está dentro del rango
+        print("Distancia:", distancia, "cm")
+        try:
+            insert_measurement(distancia, 'ok', f'Distancia: {distancia} cm')
+        except Exception as e:
+            print("Error guardando en DB:", e)
+    else:
+        print("Fuera de Rango")
+        try:
+            insert_measurement(None, 'out_of_range', 'Fuera de Rango')
+        except Exception as e:
+            print("Error guardando en DB:", e)
+finally:
+    GPIO.cleanup()  # Limpia los pines
