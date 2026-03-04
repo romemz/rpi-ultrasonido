@@ -2,18 +2,14 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Medidor Inteligente – UTC</title>
 
-  <!-- Fuentes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
-  <!-- jQuery (igual que el original) -->
   <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
 
   <style>
-    /* ── VARIABLES ── */
     :root {
       --azul:   #0a74da;
       --azul2:  #0550a0;
@@ -29,8 +25,13 @@
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html { font-size: 16px; }
+
     body {
       background: var(--fondo);
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(10,116,218,.12) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(0,212,255,.06) 0%, transparent 60%);
       font-family: 'Inter', sans-serif;
       color: var(--texto);
       min-height: 100vh;
@@ -43,43 +44,42 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 32px;
+      padding: 12px 24px;
       background: var(--panel);
       border-bottom: 1px solid var(--borde);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-    .logo-area { display: flex; align-items: center; gap: 12px; }
+    .logo-area { display: flex; align-items: center; gap: 10px; }
     .logo-circle {
-      width: 46px; height: 46px; border-radius: 50%;
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
       background: linear-gradient(135deg, var(--azul), var(--cyan));
       display: flex; align-items: center; justify-content: center;
       font-family: 'Rajdhani', sans-serif; font-weight: 700;
-      font-size: 16px; color: #fff; flex-shrink: 0;
+      font-size: 14px; color: #fff;
     }
     .logo-text h1 {
       font-family: 'Rajdhani', sans-serif;
-      font-size: 17px; font-weight: 700;
-      color: #fff; letter-spacing: 1px;
+      font-size: clamp(13px, 3vw, 17px);
+      font-weight: 700; color: #fff; letter-spacing: 1px;
     }
-    .logo-text p { font-size: 11px; color: #7aadcc; }
+    .logo-text p { font-size: clamp(9px, 2vw, 11px); color: #7aadcc; }
 
-    .status-bar { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #7aadcc; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
+    .status-bar { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #7aadcc; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
     /* ── LAYOUT ── */
     main {
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 24px;
-      padding: 28px 32px;
+      grid-template-columns: 1fr 320px;
+      gap: 20px;
+      padding: 24px 28px;
       max-width: 1100px;
       width: 100%;
       margin: 0 auto;
-    }
-    @media (max-width: 720px) {
-      main { grid-template-columns: 1fr; padding: 16px; }
-      header { padding: 12px 16px; }
     }
 
     /* ── TARJETA ── */
@@ -87,48 +87,43 @@
       background: var(--panel);
       border: 1px solid var(--borde);
       border-radius: 16px;
-      padding: 24px;
+      padding: 20px;
     }
     .card-title {
       font-family: 'Rajdhani', sans-serif;
-      font-size: 13px; font-weight: 600;
+      font-size: 12px; font-weight: 600;
       letter-spacing: 2px; text-transform: uppercase;
-      color: var(--cyan); margin-bottom: 20px;
+      color: var(--cyan); margin-bottom: 16px;
     }
 
-    /* ── TINACO SVG ── */
-    .tinaco-wrap {
-      display: flex; flex-direction: column; align-items: center; gap: 20px;
-    }
-    .tinaco-svg-area { position: relative; width: 200px; }
+    /* ── TINACO ── */
+    .tinaco-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .tinaco-svg-area { width: clamp(140px, 40vw, 200px); }
     .tinaco-svg-area svg { width: 100%; }
     #agua-fill { transition: height 1.2s ease, y 1.2s ease; }
-    .wave { animation: waveMove 3s linear infinite; transform-origin: center; }
+    .wave { animation: waveMove 3s linear infinite; }
     @keyframes waveMove { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
 
     /* ── PORCENTAJE ── */
     .pct-display { text-align: center; }
     .pct-display .num {
       font-family: 'Rajdhani', sans-serif;
-      font-size: 72px; font-weight: 700; line-height: 1;
+      font-size: clamp(48px, 12vw, 72px);
+      font-weight: 700; line-height: 1;
       background: linear-gradient(135deg, var(--cyan), var(--azul));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      transition: all .5s;
     }
-    .pct-display .lbl { font-size: 13px; color: #7aadcc; margin-top: 4px; }
+    .pct-display .lbl { font-size: 12px; color: #7aadcc; margin-top: 2px; }
 
     /* ── BADGE DISTANCIA ── */
     .dist-badge {
       display: inline-flex; align-items: center; gap: 8px;
       background: rgba(0,212,255,.08);
       border: 1px solid rgba(0,212,255,.2);
-      border-radius: 30px; padding: 8px 18px;
-      font-size: 14px; color: var(--cyan);
+      border-radius: 30px; padding: 7px 16px;
+      font-size: 13px; color: var(--cyan);
     }
-    .dist-badge .val {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 20px; font-weight: 700;
-    }
+    .dist-badge .val { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; }
 
     /* ── BOTÓN ── */
     .btn-medir {
@@ -136,30 +131,30 @@
       background: linear-gradient(135deg, var(--azul2), var(--azul));
       border: none; border-radius: 12px;
       color: #fff; font-family: 'Rajdhani', sans-serif;
-      font-size: 18px; font-weight: 700; letter-spacing: 1px;
-      cursor: pointer; overflow: hidden; position: relative;
-      transition: transform .15s, box-shadow .15s;
+      font-size: clamp(15px, 4vw, 18px); font-weight: 700; letter-spacing: 1px;
+      cursor: pointer; transition: transform .15s, box-shadow .15s;
       box-shadow: 0 4px 20px rgba(10,116,218,.4);
+      min-height: 48px;
     }
-    .btn-medir:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(10,116,218,.6); }
-    .btn-medir:active { transform: translateY(0); }
+    .btn-medir:hover   { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(10,116,218,.6); }
+    .btn-medir:active  { transform: scale(.97); }
     .btn-medir:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
     /* ── LOADER ── */
-    .loader-wrap { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 16px 0; }
+    .loader-wrap { display: none; flex-direction: column; align-items: center; gap: 10px; padding: 14px 0; }
     .loader-wrap.show { display: flex; }
     .spinner {
-      width: 36px; height: 36px; border-radius: 50%;
+      width: 32px; height: 32px; border-radius: 50%;
       border: 3px solid var(--borde); border-top-color: var(--cyan);
       animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .loader-wrap p { font-size: 13px; color: #7aadcc; }
+    .loader-wrap p { font-size: 12px; color: #7aadcc; }
 
     /* ── ALERTA ── */
     .alerta {
-      display: none; margin-top: 12px;
-      border-radius: 10px; padding: 12px 16px;
+      display: none; margin-top: 10px;
+      border-radius: 10px; padding: 10px 14px;
       font-size: 13px; font-weight: 600;
       border: 1px solid transparent;
     }
@@ -170,38 +165,62 @@
     .alerta.error   { background: rgba(255,71,87,.12);  border-color: var(--critico); color: var(--critico); }
 
     /* ── PANEL DERECHO ── */
-    .right-col { display: flex; flex-direction: column; gap: 20px; }
+    .right-col { display: flex; flex-direction: column; gap: 16px; }
 
-    /* historial */
-    .historial-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .historial-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
     .historial-list li {
       display: flex; justify-content: space-between; align-items: center;
-      background: rgba(255,255,255,.03); border-radius: 8px; padding: 8px 12px;
-      font-size: 13px; border-left: 3px solid var(--azul);
+      background: rgba(255,255,255,.03); border-radius: 8px; padding: 7px 10px;
+      font-size: 12px; border-left: 3px solid var(--azul);
     }
-    .historial-list li .time { color: #7aadcc; font-size: 11px; }
-    .historial-list li .val  { font-family: 'Rajdhani', sans-serif; font-size: 16px; color: var(--cyan); }
-    .empty-hist { font-size: 13px; color: #456; text-align: center; padding: 16px 0; }
+    .historial-list li .time { color: #7aadcc; font-size: 10px; }
+    .historial-list li .val  { font-family: 'Rajdhani', sans-serif; font-size: 15px; color: var(--cyan); }
+    .empty-hist { font-size: 12px; color: #456; text-align: center; padding: 14px 0; }
 
-    /* info sistema */
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .info-item {
       background: rgba(255,255,255,.03); border-radius: 10px;
-      padding: 12px; border: 1px solid var(--borde);
+      padding: 10px; border: 1px solid var(--borde);
     }
-    .info-item .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #7aadcc; margin-bottom: 4px; }
-    .info-item .val { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
+    .info-item .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #7aadcc; margin-bottom: 3px; }
+    .info-item .val { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: #fff; }
 
-    /* niveles de alerta info */
-    .nivel-ref { display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
-    .nivel-ref div { display: flex; align-items: center; gap: 8px; }
-    .nivel-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .nivel-ref { display: flex; flex-direction: column; gap: 7px; font-size: 12px; }
+    .nivel-ref div { display: flex; align-items: center; gap: 7px; }
+    .nivel-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
     /* ── FOOTER ── */
     footer {
-      text-align: center; padding: 14px;
-      font-size: 11px; color: #2a4a66;
+      text-align: center; padding: 12px;
+      font-size: 10px; color: #2a4a66;
       border-top: 1px solid var(--borde);
+    }
+
+    /* ── RESPONSIVE TABLET ≤ 900px ── */
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; padding: 16px; gap: 16px; }
+      .right-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    }
+
+    /* ── RESPONSIVE MÓVIL ≤ 600px ── */
+    @media (max-width: 600px) {
+      header { padding: 10px 14px; }
+      .logo-circle { width: 34px; height: 34px; font-size: 12px; }
+      .logo-text p { display: none; }
+      main { padding: 12px; gap: 12px; }
+      .card { padding: 16px; border-radius: 12px; }
+      .right-col { display: flex; flex-direction: column; gap: 12px; }
+      .tinaco-wrap { gap: 12px; }
+      .tinaco-svg-area { width: clamp(120px, 50vw, 160px); }
+      .historial-list li { font-size: 11px; }
+      .info-grid { grid-template-columns: repeat(3, 1fr); }
+      footer { font-size: 9px; padding: 10px; }
+    }
+
+    /* ── RESPONSIVE MÓVIL PEQUEÑO ≤ 380px ── */
+    @media (max-width: 380px) {
+      .info-grid { grid-template-columns: 1fr 1fr; }
+      .btn-medir { font-size: 14px; padding: 12px; }
     }
   </style>
 </head>
@@ -218,22 +237,21 @@
   </div>
   <div class="status-bar">
     <div class="dot"></div>
-    <span>Sistema activo</span>
+    <span>Activo</span>
   </div>
 </header>
 
 <!-- ══════════ MAIN ══════════ -->
 <main>
 
-  <!-- ── COLUMNA IZQUIERDA ── -->
-  <div style="display:flex;flex-direction:column;gap:20px;">
+  <!-- ── COLUMNA PRINCIPAL ── -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
 
-    <!-- Tarjeta: visualización del tinaco -->
+    <!-- Tarjeta tinaco -->
     <div class="card">
       <div class="card-title">📡 Nivel actual del tinaco</div>
       <div class="tinaco-wrap">
 
-        <!-- SVG Tinaco -->
         <div class="tinaco-svg-area">
           <svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -245,18 +263,14 @@
                 <stop offset="100%" stop-color="#0550a0" stop-opacity="1"/>
               </linearGradient>
             </defs>
-            <!-- tapa -->
             <ellipse cx="100" cy="42" rx="82" ry="12" fill="#163352" stroke="#1e4a78" stroke-width="1.5"/>
-            <!-- cuerpo -->
             <rect x="20" y="40" width="160" height="200" rx="8" fill="#0d1b2e" stroke="#1e4a78" stroke-width="1.5"/>
-            <!-- agua recortada -->
             <g clip-path="url(#clip-tinaco)">
               <rect id="agua-fill" x="20" y="240" width="160" height="0" fill="url(#grad-agua)" opacity="0.85"/>
               <path id="wave-path" class="wave"
                 d="M0 240 Q25 233 50 240 Q75 247 100 240 Q125 233 150 240 Q175 247 200 240 Q225 233 250 240 Q275 247 300 240 L300 260 L0 260 Z"
                 fill="url(#grad-agua)" opacity="0.5"/>
             </g>
-            <!-- marcas % -->
             <line x1="176" y1="62"  x2="183" y2="62"  stroke="#1e4a78" stroke-width="1"/>
             <line x1="176" y1="112" x2="183" y2="112" stroke="#1e4a78" stroke-width="1"/>
             <line x1="176" y1="162" x2="183" y2="162" stroke="#1e4a78" stroke-width="1"/>
@@ -265,24 +279,20 @@
             <text x="186" y="115" fill="#7aadcc" font-size="8" font-family="Inter">75%</text>
             <text x="186" y="165" fill="#7aadcc" font-size="8" font-family="Inter">50%</text>
             <text x="186" y="215" fill="#7aadcc" font-size="8" font-family="Inter">25%</text>
-            <!-- línea de nivel -->
             <line id="nivel-line" x1="20" y1="240" x2="180" y2="240"
                   stroke="#00d4ff" stroke-width="1" stroke-dasharray="4 3" opacity="0.6"/>
-            <!-- base -->
             <rect x="60" y="240" width="80" height="10" rx="4" fill="#163352"/>
             <rect x="80" y="250" width="40" height="6"  rx="3" fill="#0d1b2e" stroke="#1e4a78" stroke-width="1"/>
           </svg>
         </div>
 
-        <!-- Porcentaje -->
         <div class="pct-display">
           <div class="num" id="pct-num">–</div>
           <div class="lbl">Nivel de llenado</div>
         </div>
 
-        <!-- Distancia raw del sensor -->
         <div class="dist-badge">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 2L2 7l10 5 10-5-10-5z"/>
             <path d="M2 17l10 5 10-5"/>
             <path d="M2 12l10 5 10-5"/>
@@ -293,17 +303,14 @@
       </div>
     </div>
 
-    <!-- Tarjeta: botón de acción -->
+    <!-- Tarjeta botón -->
     <div class="card">
       <div class="card-title">⚡ Control de medición</div>
-
       <button class="btn-medir" id="btn-medir">MEDIR AHORA</button>
-
       <div class="loader-wrap" id="load-midiendo">
         <div class="spinner"></div>
         <p>Midiendo con sensor ultrasónico…</p>
       </div>
-
       <div class="alerta" id="alerta"></div>
     </div>
 
@@ -312,20 +319,20 @@
   <!-- ── COLUMNA DERECHA ── -->
   <div class="right-col">
 
-    <!-- Info del sistema -->
     <div class="card">
-      <div class="card-title">🔧 Info del sistema</div>
+      <div class="card-title">📊 Resumen del día</div>
       <div class="info-grid">
-        <div class="info-item"><div class="lbl">Sensor</div><div class="val">HC-SR04</div></div>
-        <div class="info-item"><div class="lbl">Hardware</div><div class="val">RPi</div></div>
-        <div class="info-item"><div class="lbl">TRIG pin</div><div class="val">GPIO 23</div></div>
-        <div class="info-item"><div class="lbl">ECHO pin</div><div class="val">GPIO 24</div></div>
-        <div class="info-item"><div class="lbl">Rango</div><div class="val">2–400cm</div></div>
-        <div class="info-item"><div class="lbl">Vel. sonido</div><div class="val">343 m/s</div></div>
+        <div class="info-item"><div class="lbl">Mediciones</div><div class="val" id="res-total">0</div></div>
+        <div class="info-item"><div class="lbl">Promedio</div><div class="val" id="res-prom">—</div></div>
+        <div class="info-item"><div class="lbl">Máximo</div><div class="val" id="res-max">—</div></div>
+        <div class="info-item"><div class="lbl">Mínimo</div><div class="val" id="res-min">—</div></div>
+        <div class="info-item" style="grid-column:span 2">
+          <div class="lbl">Última medición</div>
+          <div class="val" id="res-ultima" style="font-size:13px;color:#7aadcc">Sin mediciones aún</div>
+        </div>
       </div>
     </div>
 
-    <!-- Historial de lecturas -->
     <div class="card" style="flex:1">
       <div class="card-title">📋 Historial de lecturas</div>
       <ul class="historial-list" id="historial">
@@ -333,13 +340,12 @@
       </ul>
     </div>
 
-    <!-- Referencia de niveles -->
     <div class="card">
       <div class="card-title">🚨 Niveles de alerta</div>
       <div class="nivel-ref">
-        <div><span class="nivel-dot" style="background:var(--critico)"></span> Crítico: ≤ 25% — Notificación urgente</div>
-        <div><span class="nivel-dot" style="background:var(--warn)"></span>    Precaución: 26% – 50%</div>
-        <div><span class="nivel-dot" style="background:var(--ok)"></span>      Normal: &gt; 50%</div>
+        <div><span class="nivel-dot" style="background:var(--critico)"></span>Crítico ≤ 25%</div>
+        <div><span class="nivel-dot" style="background:var(--warn)"></span>Precaución 26–50%</div>
+        <div><span class="nivel-dot" style="background:var(--ok)"></span>Normal &gt; 50%</div>
       </div>
     </div>
 
@@ -354,41 +360,48 @@
 
 <!-- ══════════ SCRIPT ══════════ -->
 <script>
-  // ─────────────────────────────────────────────────────────
-  //  AJUSTA este valor al alto real de tu tinaco en cm.
-  //  El sensor mide la distancia desde la tapa hasta el agua,
-  //  así que: % llenado = (1 - distancia / TINACO_ALTO_CM) * 100
-  // ─────────────────────────────────────────────────────────
+  // ── Ajusta al alto real de tu tinaco en cm ──
   var TINACO_ALTO_CM = 100;
 
-  var historial = [];
+  var historial  = [];
+  var resumen    = { total: 0, suma: 0, max: null, min: null, ultimaHora: null };
 
-  function obtenerUrlMedir() {
-    var path = window.location.pathname.toLowerCase();
-    return path.indexOf('/php/') !== -1 ? 'medir.php' : 'php/medir.php';
-  }
-
-  // ── Click en el botón ──
   $('#btn-medir').click(function () {
     var $btn = $(this);
-
-    // Ocultar resultados anteriores y mostrar loader
     $btn.prop('disabled', true);
     $('#load-midiendo').addClass('show');
     ocultarAlerta();
     $('#dist-val').text('—');
 
-    // ── AJAX: igual que el original, solo cambia el handler de éxito ──
     $.ajax({
-      url: obtenerUrlMedir(),
+      url: 'php/medir.php',
       type: 'POST',
 
-      success: function (response) {
-        procesarRespuesta(response.trim());
+      success: function (resp) {
+        // Parseo tolerante: funciona aunque haya texto extra alrededor del JSON
+        var data = null;
+        try {
+          data = (typeof resp === 'object') ? resp : JSON.parse(resp);
+        } catch (e) {
+          var match = String(resp).match(/\{[\s\S]*\}/);
+          if (match) {
+            try { data = JSON.parse(match[0]); } catch (e2) { data = null; }
+          }
+        }
+
+        if (data && data.ok) {
+          procesarRespuesta(data);
+        } else if (data && !data.ok) {
+          mostrarAlerta('error', '⚠️ ' + (data.error || 'Error desconocido'));
+          $('#dist-val').text(data.error || 'Error');
+        } else {
+          mostrarAlerta('error', '⚠️ Respuesta inesperada del servidor');
+          $('#dist-val').text('Error de formato');
+        }
       },
 
       error: function (xhr) {
-        var msg = xhr.responseText ? xhr.responseText : 'Error de comunicación con el servidor';
+        var msg = xhr.responseText || 'Error de comunicación con el servidor';
         mostrarAlerta('error', '⚠️ ' + msg);
         $('#dist-val').text(msg);
       },
@@ -400,68 +413,74 @@
     });
   });
 
-  // ── Procesa la respuesta del servidor ──
-  function procesarRespuesta(resp) {
-    $('#dist-val').text(resp);
-
-    var match = resp.match(/[\d.]+/);
-    if (match) {
-      var dist = parseFloat(match[0]);
-      var pct  = Math.max(0, Math.min(100,
-        Math.round((1 - dist / TINACO_ALTO_CM) * 100)
-      ));
-      actualizarTinaco(pct);
-      actualizarAlerta(pct);
-      agregarHistorial(resp, pct);
+  function procesarRespuesta(data) {
+    $('#dist-val').text(data.texto);
+    if (data.distancia !== null) {
+      actualizarTinaco(data.porcentaje);
+      actualizarAlerta(data.porcentaje, data.estado);
+      agregarHistorial(data.texto, data.porcentaje);
+      actualizarResumen(data.porcentaje);
     } else {
-      // Fuera de Rango u otro mensaje del script Python
-      mostrarAlerta('error', '⚠️ ' + resp);
+      mostrarAlerta('error', '⚠️ ' + data.texto);
     }
   }
 
-  // ── Anima el tinaco SVG ──
   function actualizarTinaco(pct) {
     $('#pct-num').text(pct + '%');
-
-    // Área útil del SVG: y=40 (tapa) → y=240 (base) = 200px
-    var alturaAgua = Math.round(pct * 2);   // 0–200
-    var yAgua      = 240 - alturaAgua;
-
+    var alturaAgua = Math.round(pct * 2);
+    var yAgua = 240 - alturaAgua;
     $('#agua-fill').attr({ y: yAgua, height: alturaAgua });
     $('#nivel-line').attr({ y1: yAgua, y2: yAgua });
     $('#wave-path').attr('d',
-      'M0 ' + yAgua +
-      ' Q25 ' + (yAgua - 7) + ' 50 ' + yAgua +
-      ' Q75 ' + (yAgua + 7) + ' 100 ' + yAgua +
-      ' Q125 ' + (yAgua - 7) + ' 150 ' + yAgua +
-      ' Q175 ' + (yAgua + 7) + ' 200 ' + yAgua +
-      ' Q225 ' + (yAgua - 7) + ' 250 ' + yAgua +
-      ' Q275 ' + (yAgua + 7) + ' 300 ' + yAgua +
+      'M0 '    + yAgua +
+      ' Q25 '  + (yAgua-7)  + ' 50 '  + yAgua +
+      ' Q75 '  + (yAgua+7)  + ' 100 ' + yAgua +
+      ' Q125 ' + (yAgua-7)  + ' 150 ' + yAgua +
+      ' Q175 ' + (yAgua+7)  + ' 200 ' + yAgua +
+      ' Q225 ' + (yAgua-7)  + ' 250 ' + yAgua +
+      ' Q275 ' + (yAgua+7)  + ' 300 ' + yAgua +
       ' L300 260 L0 260 Z'
     );
   }
 
-  // ── Muestra alerta según nivel ──
-  function actualizarAlerta(pct) {
-    if (pct <= 25) {
-      mostrarAlerta('critico', '🚨 Nivel CRÍTICO: ' + pct + '% — Se requiere acción inmediata');
-    } else if (pct <= 50) {
-      mostrarAlerta('warn', '⚠️ Nivel BAJO: ' + pct + '% — Considera rellenar pronto');
-    } else {
-      mostrarAlerta('ok', '✅ Nivel NORMAL: ' + pct + '% — Sin problema');
-    }
+  function actualizarAlerta(pct, estado) {
+    var map = {
+      critico: ['critico', '🚨 Nivel CRÍTICO: ' + pct + '% — Acción inmediata'],
+      bajo:    ['warn',    '⚠️ Nivel BAJO: '    + pct + '% — Rellena pronto'],
+      normal:  ['ok',      '✅ Nivel NORMAL: '  + pct + '% — Sin problema']
+    };
+    var e = map[estado] || ['ok', '✅ ' + pct + '%'];
+    mostrarAlerta(e[0], e[1]);
   }
 
-  // ── Agrega entrada al historial ──
-  function agregarHistorial(raw, pct) {
+  function actualizarResumen(pct) {
     var now = new Date();
     var t   = [now.getHours(), now.getMinutes(), now.getSeconds()]
-              .map(function (n) { return String(n).padStart(2, '0'); }).join(':');
+              .map(function(n){ return String(n).padStart(2,'0'); }).join(':');
+
+    resumen.total++;
+    resumen.suma += pct;
+    resumen.max   = resumen.max === null ? pct : Math.max(resumen.max, pct);
+    resumen.min   = resumen.min === null ? pct : Math.min(resumen.min, pct);
+    resumen.ultimaHora = t;
+
+    var prom = Math.round(resumen.suma / resumen.total);
+
+    $('#res-total').text(resumen.total);
+    $('#res-prom').text(prom + '%');
+    $('#res-max').text(resumen.max + '%');
+    $('#res-min').text(resumen.min + '%');
+    $('#res-ultima').text(pct + '%  ·  ' + t);
+  }
+
+  function agregarHistorial(raw, pct) {
+    var now = new Date();
+    var t = [now.getHours(), now.getMinutes(), now.getSeconds()]
+            .map(function(n){ return String(n).padStart(2,'0'); }).join(':');
     historial.unshift({ time: t, raw: raw, pct: pct });
     if (historial.length > 8) historial.pop();
-
     var $ul = $('#historial').empty();
-    $.each(historial, function (_, item) {
+    $.each(historial, function(_, item) {
       $ul.append(
         '<li>' +
           '<span>' + item.raw + '</span>' +
@@ -475,9 +494,7 @@
   function mostrarAlerta(tipo, msg) {
     $('#alerta').removeClass().addClass('alerta show ' + tipo).text(msg);
   }
-  function ocultarAlerta() {
-    $('#alerta').removeClass('show');
-  }
+  function ocultarAlerta() { $('#alerta').removeClass('show'); }
 </script>
 
 </body>
