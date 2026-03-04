@@ -1,0 +1,176 @@
+/* ═══════════════════════════════════════════════
+   default.css
+   Medidor Inteligente de Niveles – UTC
+   Ramos Arizpe, Coahuila · 2025
+   ═══════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;600&display=swap');
+
+/* ── RESET ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── VARIABLES ── */
+:root {
+  --azul:    #0a74da;
+  --azul2:   #0550a0;
+  --cyan:    #00d4ff;
+  --fondo:   #060d1a;
+  --panel:   #0d1b2e;
+  --borde:   #163352;
+  --texto:   #cde7ff;
+  --blanco:  #ffffff;
+  --critico: #ff4757;
+  --ok:      #2ed573;
+  --warn:    #ffa502;
+}
+
+/* ── BASE ── */
+html, body {
+  height: 100%;
+  font-size: 100%;
+}
+
+body {
+  font-family: 'Inter', Calibri, Arial, sans-serif;
+  color: var(--texto);
+  background: var(--fondo);
+  /* fondo con gradiente sutil radial */
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(10,116,218,.12) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(0,212,255,.06) 0%, transparent 60%);
+  min-height: 100vh;
+}
+
+/* ── LINKS ── */
+a {
+  color: var(--cyan);
+  text-decoration: none;
+  transition: color .2s;
+}
+a:hover, a:active {
+  color: var(--blanco);
+}
+
+/* ── CLEARFIX ── */
+.clearfix::before,
+.clearfix::after { content: " "; display: table; }
+.clearfix::after  { clear: both; }
+
+/* ── CONTENEDOR GENERAL ── */
+.container {
+  height: 100%;
+  position: relative;
+}
+
+.container > section {
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 0 3em;
+}
+
+/* ── TIPOGRAFÍA DE SECCIÓN ── */
+.container > section p {
+  color: var(--texto);
+  text-align: center;
+  padding: 1em;
+  margin: 0;
+}
+
+/* ── SALIDA (resultado de distancia) ── */
+#salida {
+  text-align: center;
+  margin-top: 120px;
+}
+
+#salida h1 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 3em;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  /* brillo sutil */
+  text-shadow: 0 0 24px rgba(0,212,255,.4);
+}
+
+/* ── SECCIÓN MEDIR ── */
+#set-8 {
+  text-align: center;
+  background: transparent;
+}
+
+#set-8 h1 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.6em;
+  font-weight: 600;
+  color: var(--texto);
+  letter-spacing: 1px;
+  margin-bottom: .5em;
+}
+
+/* ── LOADER (midiendo...) ── */
+.midiendo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  /* animación de fondo de color */
+  animation: bgTransition 20s infinite linear;
+}
+
+@keyframes bgTransition {
+  0%   { background-color: rgba(170,68,0,.15); }
+  33%  { background-color: rgba(68,170,0,.15); }
+  66%  { background-color: rgba(0,68,170,.15); }
+  100% { background-color: rgba(170,68,0,.15); }
+}
+
+/* contenedor del spinner circular */
+#loader-container {
+  width: 200px;
+  height: 200px;
+  color: var(--blanco);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 3px solid var(--cyan);
+  border-radius: 50%;
+  animation: borderScale 1s infinite ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#loadingText {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 1.3em;
+  color: var(--cyan);
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+@keyframes borderScale {
+  0%   { border: 2px solid rgba(0,212,255,.3); }
+  25%  { border: 5px solid rgba(0,212,255,.6); }
+  50%  { border: 10px solid var(--cyan);        }
+  75%  { border: 5px solid rgba(0,212,255,.6); }
+  100% { border: 2px solid rgba(0,212,255,.3); }
+}
+
+/* ── RESPONSIVE ── */
+@media screen and (max-width: 800px) {
+  .container > section {
+    padding: 6em 1em;
+  }
+}
+
+@media screen and (max-width: 25em) {
+  #salida h1 {
+    font-size: 2em;
+  }
+}
