@@ -1,39 +1,22 @@
-<?php
-/**
- * medir.php
- * Medidor Inteligente de Niveles – UTC
- */
-
-// Limpiar buffer
-if (ob_get_level()) ob_end_clean();
-ob_start();
-
+<<?php
 header('Content-Type: application/json; charset=utf-8');
 
-// Solo POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    ob_end_clean();
     echo json_encode(['ok' => false, 'error' => 'Método no permitido']);
     exit;
 }
 
-// Rutas
 define('SCRIPT_PATH', '/var/www/html/rpi-ultrasonido/python/ultrasonido.py');
-define('PYTHON_BIN',  '/var/www/html/rpi-ultrasonido/python/venv/bin/python');
+define('PYTHON_BIN',  '/usr/bin/python3');
 define('TINACO_ALTO', 100); // Ajusta altura real
 
 if (!file_exists(SCRIPT_PATH)) {
     http_response_code(500);
-    ob_end_clean();
-    echo json_encode([
-        'ok' => false,
-        'error' => 'No se encontró el script'
-    ]);
+    echo json_encode(['ok' => false, 'error' => 'No se encontró el script']);
     exit;
 }
 
-// Ejecutar Python
 $comando  = 'sudo -n ' . PYTHON_BIN . ' ' . escapeshellarg(SCRIPT_PATH) . ' 2>&1';
 $salida   = [];
 $exitCode = 0;
@@ -42,22 +25,14 @@ exec($comando, $salida, $exitCode);
 
 if ($exitCode !== 0) {
     http_response_code(500);
-    ob_end_clean();
-    echo json_encode([
-        'ok' => false,
-        'error' => implode(' | ', $salida)
-    ]);
+    echo json_encode(['ok' => false, 'error' => implode(' | ', $salida)]);
     exit;
 }
 
-// Buscar línea medición
 $lineaMedicion = '';
 for ($i = count($salida) - 1; $i >= 0; $i--) {
     $linea = trim($salida[$i]);
-    if ($linea === '') continue;
-
-    if (stripos($linea, 'Distancia:') !== false ||
-        stripos($linea, 'Fuera de Rango') !== false) {
+    if ($linea !== '') {
         $lineaMedicion = $linea;
         break;
     }
@@ -68,7 +43,7 @@ $porcentaje = null;
 $estado     = 'desconocido';
 
 if (preg_match('/[\d.]+/', $lineaMedicion, $match)) {
-    $distancia  = (float) $match[0];
+    $distancia  = (float)$match[0];
     $porcentaje = max(0, min(100,
         (int) round((1 - $distancia / TINACO_ALTO) * 100)
     ));
@@ -82,7 +57,28 @@ if (preg_match('/[\d.]+/', $lineaMedicion, $match)) {
     }
 }
 
-ob_end_clean();
+require_once __DIR__ . '/conexion.php';
+
+$raw = $lineaMedicion;
+
+if ($distancia !== null) {
+    $stmt = $conn->prepare(
+        "INSERT INTO measurements (distance_cm, status, raw_output)
+         VALUES (?, ?, ?)"
+    );
+    $stmt->bind_param("dss", $distancia, $estado, $raw);
+} else {
+    $stmt = $conn->prepare(
+        "INSERT INTO measurements (distance_cm, status, raw_output)
+         VALUES (NULL, ?, ?)"
+    );
+    $stmt->bind_param("ss", $estado, $raw);
+}
+
+$stmt->execute();
+$stmt->close();
+$conn->close();
+
 echo json_encode([
     'ok'         => true,
     'texto'      => $lineaMedicion,
