@@ -6,9 +6,9 @@
  */
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'medidor_db');
-define('DB_USER', 'medidor_user');
-define('DB_PASS', 'medidor2025');
+define('DB_NAME', 'rpi_ultrasonido');
+define('DB_USER', 'rpi_user');
+define('DB_PASS', '1234');
 define('DB_CHARSET', 'utf8mb4');
 
 function getDB() {
