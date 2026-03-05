@@ -4,15 +4,16 @@
  * Medidor Inteligente de Niveles – UTC
  * Ramos Arizpe, Coahuila · 2025
  *
- * Ejecuta ultrasonido.py, calcula el nivel y
- * guarda cada medición en MariaDB.
+ * Ejecuta ultrasonido.py, guarda la medición en MariaDB
+ * y devuelve JSON al front-end.
+ *
+ * IMPORTANTE: No modifica ultrasonido.py en absoluto.
  */
 
-// ── Buffer limpio ──────────────────────────────────────────
+// ── Limpiar output previo ──────────────────────────────
 if (ob_get_level()) ob_end_clean();
 ob_start();
 
-// ── Cabeceras ──────────────────────────────────────────────
 header('Content-Type: application/json; charset=utf-8');
 
 // Solo POST
@@ -23,34 +24,40 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// ── Configuración ──────────────────────────────────────────
+// ════════════════════════════════════════════════════════
+//  CONFIGURACIÓN  ← ajusta estos valores
+// ════════════════════════════════════════════════════════
 define('SCRIPT_PATH', '/var/www/html/rpi-ultrasonido/python/ultrasonido.py');
 define('PYTHON_BIN',  '/usr/bin/python3');
-define('TINACO_ALTO', 100); // ← Alto real del tinaco en cm
+define('TINACO_ALTO', 100);      // Alto real del tinaco en cm
+define('TINACO_ID',   1);        // ID del tinaco en la tabla tinacos
 
-// ── Conexión BD ────────────────────────────────────────────
-require_once __DIR__ . '/db.php';
-$pdo = getDB();
+// Base de datos
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'medidor_tinaco');
+define('DB_USER', 'medidor_user');
+define('DB_PASS', 'medidor2025');  // ← cambia esto
+// ════════════════════════════════════════════════════════
 
-// ── Verificar script Python ────────────────────────────────
+// ── Verificar script Python ────────────────────────────
 if (!file_exists(SCRIPT_PATH)) {
     http_response_code(500);
     ob_end_clean();
     echo json_encode([
         'ok'    => false,
         'error' => 'No se encontró el script de medición',
-        'texto' => 'Error: no se encontro el script de medicion'
+        'texto' => 'Error: no se encontró el script de medición'
     ]);
     exit;
 }
 
-// ── Ejecutar script ────────────────────────────────────────
+// ── Ejecutar ultrasonido.py ────────────────────────────
 $comando  = 'sudo -n ' . PYTHON_BIN . ' ' . escapeshellarg(SCRIPT_PATH) . ' 2>&1';
 $salida   = [];
 $exitCode = 0;
 exec($comando, $salida, $exitCode);
 
-// ── Error de ejecución ─────────────────────────────────────
+// ── Error de ejecución ─────────────────────────────────
 if ($exitCode !== 0) {
     $errorStr = implode(' | ', $salida);
     $mensaje  = (stripos($errorStr, 'password is required') !== false ||
@@ -64,24 +71,40 @@ if ($exitCode !== 0) {
     exit;
 }
 
-// ── Buscar línea con resultado ─────────────────────────────
+// ── Buscar línea con el resultado ─────────────────────
 $lineaMedicion = '';
 for ($i = count($salida) - 1; $i >= 0; $i--) {
     $linea = trim($salida[$i]);
     if ($linea === '') continue;
-    if (stripos($linea, 'Distancia:')     !== false ||
-        stripos($linea, 'Fuera de Rango') !== false) {
+
+    if (stripos($linea, 'Distancia:')          !== false ||
+        stripos($linea, 'Fuera de Rango')       !== false ||
+        stripos($linea, 'Sensor no detectado')  !== false) {
         $lineaMedicion = $linea;
         break;
     }
     if ($lineaMedicion === '') $lineaMedicion = $linea;
 }
 
-// ── Calcular porcentaje ────────────────────────────────────
+// ── Sensor fuera del tinaco o sin señal ───────────────
+if (stripos($lineaMedicion, 'Sensor no detectado') !== false) {
+    ob_end_clean();
+    echo json_encode([
+        'ok'         => true,
+        'fuera'      => true,
+        'texto'      => '⚠️ Sensor fuera del tinaco o sin obstáculo detectado',
+        'distancia'  => null,
+        'porcentaje' => null,
+        'estado'     => 'sin_señal',
+        'timestamp'  => date('Y-m-d H:i:s')
+    ]);
+    exit;
+}
+
+// ── Calcular distancia y porcentaje ───────────────────
 $distancia  = null;
 $porcentaje = null;
 $estado     = 'desconocido';
-$guardado   = false;
 
 $match = [];
 if (preg_match('/[\d.]+/', $lineaMedicion, $match)) {
@@ -93,66 +116,50 @@ if (preg_match('/[\d.]+/', $lineaMedicion, $match)) {
     if ($porcentaje <= 25)      $estado = 'critico';
     elseif ($porcentaje <= 50)  $estado = 'bajo';
     else                        $estado = 'normal';
+}
 
-    // ── Guardar en MariaDB ─────────────────────────────────
-    if ($pdo !== null) {
-        try {
-            $stmt = $pdo->prepare(
-                'INSERT INTO measurements (distancia, porcentaje, estado)
-                 VALUES (:distancia, :porcentaje, :estado)'
-            );
-            $stmt->execute([
-                ':distancia'  => $distancia,
-                ':porcentaje' => $porcentaje,
-                ':estado'     => $estado,
-            ]);
-            $guardado = true;
-        } catch (PDOException $e) {
-            // No interrumpe la medición si la BD falla
-            $guardado = false;
-        }
+// ── Guardar en MariaDB ────────────────────────────────
+$dbError = null;
+
+if ($distancia !== null) {
+    try {
+        $pdo = new PDO(
+            'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
+            DB_USER,
+            DB_PASS,
+            [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_TIMEOUT            => 3,
+            ]
+        );
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO mediciones (tinaco_id, distancia_cm, porcentaje, estado)
+             VALUES (:tinaco_id, :distancia_cm, :porcentaje, :estado)'
+        );
+        $stmt->execute([
+            ':tinaco_id'    => TINACO_ID,
+            ':distancia_cm' => $distancia,
+            ':porcentaje'   => $porcentaje,
+            ':estado'       => $estado,
+        ]);
+
+    } catch (PDOException $e) {
+        $dbError = $e->getMessage();
+        error_log('[medidor_tinaco] Error BD: ' . $dbError);
     }
 }
 
-// ── Resumen del día desde BD ───────────────────────────────
-$resumen = ['total' => 0, 'promedio' => null, 'maximo' => null, 'minimo' => null];
-
-    if ($pdo !== null) {
-        try {
-            $hoy = date('Y-m-d');
-            $stmt = $pdo->prepare(
-                'SELECT
-                    COUNT(*)        AS total,
-                    ROUND(AVG(porcentaje)) AS promedio,
-                    MAX(porcentaje) AS maximo,
-                    MIN(porcentaje) AS minimo
-                 FROM measurements
-                 WHERE DATE(fecha) = :hoy'
-            );
-            $stmt->execute([':hoy' => $hoy]);
-            $row = $stmt->fetch();
-            if ($row && $row['total'] > 0) {
-                $resumen = [
-                    'total'    => (int) $row['total'],
-                    'promedio' => is_null($row['promedio']) ? null : (int) $row['promedio'],
-                    'maximo'   => is_null($row['maximo']) ? null : (int) $row['maximo'],
-                    'minimo'   => is_null($row['minimo']) ? null : (int) $row['minimo'],
-                ];
-            }
-        } catch (PDOException $e) {
-            // Resumen vacío si falla la consulta
-        }
-    }
-
-// ── Respuesta JSON ─────────────────────────────────────────
+// ── Respuesta JSON ────────────────────────────────────
 ob_end_clean();
 echo json_encode([
     'ok'         => true,
+    'fuera'      => false,
     'texto'      => $lineaMedicion,
     'distancia'  => $distancia,
     'porcentaje' => $porcentaje,
     'estado'     => $estado,
     'timestamp'  => date('Y-m-d H:i:s'),
-    'guardado'   => $guardado,
-    'resumen'    => $resumen,
+    'db_error'   => $dbError,   // null si todo ok; elimina en producción
 ]);

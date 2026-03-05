@@ -360,12 +360,60 @@
 
 <!-- ══════════ SCRIPT ══════════ -->
 <script>
-  // ── Ajusta al alto real de tu tinaco en cm ──
-  var TINACO_ALTO_CM = 100;
 
-  var historial  = [];
-  var resumen    = { total: 0, suma: 0, max: null, min: null, ultimaHora: null };
+  // ══════════════════════════════════════════════════════
+  //  Al cargar la página: leer historial y resumen de BD
+  // ══════════════════════════════════════════════════════
+  $(function () {
+    cargarHistorialBD();
+  });
 
+  function cargarHistorialBD() {
+    $.ajax({
+      url:  'php/historial.php',
+      type: 'GET',
+      success: function (data) {
+        if (!data || !data.ok) return;
+
+        // ── Historial ───────────────────────────────────
+        if (data.lecturas && data.lecturas.length > 0) {
+          var $ul = $('#historial').empty();
+          $.each(data.lecturas, function (_, item) {
+            var colorBorde = item.estado === 'critico' ? 'var(--critico)'
+                           : item.estado === 'bajo'    ? 'var(--warn)'
+                           : 'var(--azul)';
+            $ul.append(
+              '<li style="border-left-color:' + colorBorde + '">' +
+                '<span>Dist: ' + item.distancia_cm + ' cm</span>' +
+                '<span class="val">' + item.porcentaje + '%</span>' +
+                '<span class="time">' + item.hora + '</span>' +
+              '</li>'
+            );
+          });
+
+          // Muestra el tinaco con el último valor guardado
+          var ultima = data.lecturas[0];
+          actualizarTinaco(ultima.porcentaje);
+          $('#dist-val').text('Distancia: ' + ultima.distancia_cm + ' cm');
+          $('#pct-num').text(ultima.porcentaje + '%');
+        }
+
+        // ── Resumen ─────────────────────────────────────
+        var r = data.resumen;
+        if (r && r.total > 0) {
+          $('#res-total').text(r.total);
+          $('#res-prom').text(r.promedio + '%');
+          $('#res-max').text(r.maximo + '%');
+          $('#res-min').text(r.minimo + '%');
+          $('#res-ultima').text(r.minimo + '%  ·  ' + r.ultima_hora);
+        }
+      }
+    });
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  Botón MEDIR
+  // ══════════════════════════════════════════════════════
   $('#btn-medir').click(function () {
     var $btn = $(this);
     $btn.prop('disabled', true);
@@ -374,23 +422,22 @@
     $('#dist-val').text('—');
 
     $.ajax({
-      url: 'php/medir.php',
+      url:  'php/medir.php',
       type: 'POST',
 
       success: function (resp) {
-        // Parseo tolerante: funciona aunque haya texto extra alrededor del JSON
         var data = null;
         try {
           data = (typeof resp === 'object') ? resp : JSON.parse(resp);
         } catch (e) {
-          var match = String(resp).match(/\{[\s\S]*\}/);
-          if (match) {
-            try { data = JSON.parse(match[0]); } catch (e2) { data = null; }
-          }
+          var m = String(resp).match(/\{[\s\S]*\}/);
+          if (m) { try { data = JSON.parse(m[0]); } catch(e2){} }
         }
 
         if (data && data.ok) {
           procesarRespuesta(data);
+          // Recarga historial y resumen desde BD tras la nueva medición
+          cargarHistorialBD();
         } else if (data && !data.ok) {
           mostrarAlerta('error', '⚠️ ' + (data.error || 'Error desconocido'));
           $('#dist-val').text(data.error || 'Error');
@@ -413,13 +460,23 @@
     });
   });
 
+  // ══════════════════════════════════════════════════════
+  //  Funciones de UI
+  // ══════════════════════════════════════════════════════
   function procesarRespuesta(data) {
+    // Sensor fuera del tinaco
+    if (data.fuera) {
+      $('#dist-val').text('Sin señal');
+      mostrarAlerta('warn',
+        '📡 El sensor no detectó obstáculo — Verifica que esté dentro del tinaco apuntando al agua.'
+      );
+      return;
+    }
+
     $('#dist-val').text(data.texto);
     if (data.distancia !== null) {
       actualizarTinaco(data.porcentaje);
       actualizarAlerta(data.porcentaje, data.estado);
-      agregarHistorial(data.texto, data.porcentaje);
-      actualizarResumen(data.porcentaje);
     } else {
       mostrarAlerta('error', '⚠️ ' + data.texto);
     }
@@ -453,48 +510,11 @@
     mostrarAlerta(e[0], e[1]);
   }
 
-  function actualizarResumen(pct) {
-    var now = new Date();
-    var t   = [now.getHours(), now.getMinutes(), now.getSeconds()]
-              .map(function(n){ return String(n).padStart(2,'0'); }).join(':');
-
-    resumen.total++;
-    resumen.suma += pct;
-    resumen.max   = resumen.max === null ? pct : Math.max(resumen.max, pct);
-    resumen.min   = resumen.min === null ? pct : Math.min(resumen.min, pct);
-    resumen.ultimaHora = t;
-
-    var prom = Math.round(resumen.suma / resumen.total);
-
-    $('#res-total').text(resumen.total);
-    $('#res-prom').text(prom + '%');
-    $('#res-max').text(resumen.max + '%');
-    $('#res-min').text(resumen.min + '%');
-    $('#res-ultima').text(pct + '%  ·  ' + t);
-  }
-
-  function agregarHistorial(raw, pct) {
-    var now = new Date();
-    var t = [now.getHours(), now.getMinutes(), now.getSeconds()]
-            .map(function(n){ return String(n).padStart(2,'0'); }).join(':');
-    historial.unshift({ time: t, raw: raw, pct: pct });
-    if (historial.length > 8) historial.pop();
-    var $ul = $('#historial').empty();
-    $.each(historial, function(_, item) {
-      $ul.append(
-        '<li>' +
-          '<span>' + item.raw + '</span>' +
-          '<span class="val">' + item.pct + '%</span>' +
-          '<span class="time">' + item.time + '</span>' +
-        '</li>'
-      );
-    });
-  }
-
   function mostrarAlerta(tipo, msg) {
     $('#alerta').removeClass().addClass('alerta show ' + tipo).text(msg);
   }
   function ocultarAlerta() { $('#alerta').removeClass('show'); }
+
 </script>
 
 </body>
