@@ -23,10 +23,7 @@ header('Cache-Control: no-store');   // siempre datos frescos
 // ════════════════════════════════════════════════════════
 //  CONFIGURACIÓN  (debe coincidir con medir.php)
 // ════════════════════════════════════════════════════════
-define('DB_HOST',  'localhost');
-define('DB_NAME',  'medidor_tinaco');
-define('DB_USER',  'medidor_user');
-define('DB_PASS',  'medidor2025');   // ← igual que en medir.php
+require_once __DIR__ . '/db.php';
 define('TINACO_ID', 1);
 // ════════════════════════════════════════════════════════
 
@@ -35,16 +32,9 @@ $limite = isset($_GET['todos']) && $_GET['todos'] == '1'
     : max(1, min(100, (int)($_GET['limite'] ?? 8)));
 
 try {
-    $pdo = new PDO(
-        'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
-        DB_USER,
-        DB_PASS,
-        [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_TIMEOUT            => 3,
-        ]
-    );
+    $pdo = getDB();
+    if ($pdo === null) throw new Exception('No hay conexión a la base de datos');
+    $pdo->setAttribute(PDO::ATTR_TIMEOUT, 3);
 
     // ── Últimas N mediciones ──────────────────────────
     $stmtHist = $pdo->prepare(

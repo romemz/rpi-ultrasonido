@@ -19,7 +19,7 @@ USE medidor_tinaco;
 
 -- ── 2. Tabla: tinacos ──────────────────────────────────────────
 -- Permite gestionar más de un tinaco en el futuro
-CREATE TABLE IF NOT EXISTS tinacos (
+CREATE TABLE tinacos (
     id          TINYINT UNSIGNED    NOT NULL AUTO_INCREMENT,
     nombre      VARCHAR(60)         NOT NULL,
     alto_cm     SMALLINT UNSIGNED   NOT NULL DEFAULT 100,

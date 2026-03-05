@@ -33,10 +33,8 @@ define('TINACO_ALTO', 100);      // Alto real del tinaco en cm
 define('TINACO_ID',   1);        // ID del tinaco en la tabla tinacos
 
 // Base de datos
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'medidor_tinaco');
-define('DB_USER', 'medidor_user');
-define('DB_PASS', 'medidor2025');  // ← cambia esto
+// Usar configuración central en php/db.php
+require_once __DIR__ . '/db.php';
 // ════════════════════════════════════════════════════════
 
 // ── Verificar script Python ────────────────────────────
@@ -123,16 +121,9 @@ $dbError = null;
 
 if ($distancia !== null) {
     try {
-        $pdo = new PDO(
-            'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
-            DB_USER,
-            DB_PASS,
-            [
-                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_TIMEOUT            => 3,
-            ]
-        );
+        $pdo = getDB();
+        if ($pdo === null) throw new Exception('No hay conexión a la base de datos');
+        $pdo->setAttribute(PDO::ATTR_TIMEOUT, 3);
 
         $stmt = $pdo->prepare(
             'INSERT INTO mediciones (tinaco_id, distancia_cm, porcentaje, estado)
@@ -145,7 +136,7 @@ if ($distancia !== null) {
             ':estado'       => $estado,
         ]);
 
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         $dbError = $e->getMessage();
         error_log('[medidor_tinaco] Error BD: ' . $dbError);
     }

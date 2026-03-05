@@ -6,10 +6,12 @@
  */
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'rpi_ultrasonido');
-define('DB_USER', 'rpi_user');
+define('DB_NAME', 'medidor_tinaco');
+define('DB_USER', 'root');
 define('DB_PASS', '1234');
 define('DB_CHARSET', 'utf8mb4');
+
+// Valores de conexión actualizados
 
 function getDB() {
     static $pdo = null;
