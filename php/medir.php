@@ -98,13 +98,13 @@ if (preg_match('/[\d.]+/', $lineaMedicion, $match)) {
     if ($pdo !== null) {
         try {
             $stmt = $pdo->prepare(
-                'INSERT INTO measurements (distance_cm, status, raw_output)
-                 VALUES (:distance_cm, :status, :raw_output)'
+                'INSERT INTO measurements (distancia, porcentaje, estado)
+                 VALUES (:distancia, :porcentaje, :estado)'
             );
             $stmt->execute([
-                ':distance_cm' => $distancia,
-                ':status'      => $estado,
-                ':raw_output'  => $lineaMedicion,
+                ':distancia'  => $distancia,
+                ':porcentaje' => $porcentaje,
+                ':estado'     => $estado,
             ]);
             $guardado = true;
         } catch (PDOException $e) {
@@ -122,14 +122,14 @@ $resumen = ['total' => 0, 'promedio' => null, 'maximo' => null, 'minimo' => null
             $hoy = date('Y-m-d');
             $stmt = $pdo->prepare(
                 'SELECT
-                    COUNT(*) AS total,
-                    ROUND(AVG( (1 - COALESCE(distance_cm,0) / :tinaco) * 100 )) AS promedio,
-                    MAX( ROUND((1 - COALESCE(distance_cm,0) / :tinaco) * 100) ) AS maximo,
-                    MIN( ROUND((1 - COALESCE(distance_cm,0) / :tinaco) * 100) ) AS minimo
+                    COUNT(*)        AS total,
+                    ROUND(AVG(porcentaje)) AS promedio,
+                    MAX(porcentaje) AS maximo,
+                    MIN(porcentaje) AS minimo
                  FROM measurements
-                 WHERE DATE(measured_at) = :hoy'
+                 WHERE DATE(fecha) = :hoy'
             );
-            $stmt->execute([':hoy' => $hoy, ':tinaco' => TINACO_ALTO]);
+            $stmt->execute([':hoy' => $hoy]);
             $row = $stmt->fetch();
             if ($row && $row['total'] > 0) {
                 $resumen = [
