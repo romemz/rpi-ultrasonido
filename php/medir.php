@@ -29,7 +29,7 @@ define('PYTHON_BIN',  '/usr/bin/python3');
 define('TINACO_ALTO', 100); // ← Alto real del tinaco en cm
 
 // ── Conexión BD ────────────────────────────────────────────
-require_once _DIR_ . '/db.php';
+require_once __DIR__ . '/db.php';
 $pdo = getDB();
 
 // ── Verificar script Python ────────────────────────────────
@@ -98,13 +98,13 @@ if (preg_match('/[\d.]+/', $lineaMedicion, $match)) {
     if ($pdo !== null) {
         try {
             $stmt = $pdo->prepare(
-                'INSERT INTO mediciones (distancia, porcentaje, estado)
-                 VALUES (:distancia, :porcentaje, :estado)'
+                'INSERT INTO measurements (distance_cm, status, raw_output)
+                 VALUES (:distance_cm, :status, :raw_output)'
             );
             $stmt->execute([
-                ':distancia'  => $distancia,
-                ':porcentaje' => $porcentaje,
-                ':estado'     => $estado,
+                ':distance_cm' => $distancia,
+                ':status'      => $estado,
+                ':raw_output'  => $lineaMedicion,
             ]);
             $guardado = true;
         } catch (PDOException $e) {
@@ -117,32 +117,32 @@ if (preg_match('/[\d.]+/', $lineaMedicion, $match)) {
 // ── Resumen del día desde BD ───────────────────────────────
 $resumen = ['total' => 0, 'promedio' => null, 'maximo' => null, 'minimo' => null];
 
-if ($pdo !== null) {
-    try {
-        $hoy  = date('Y-m-d');
-        $stmt = $pdo->prepare(
-            'SELECT
-                COUNT(*)        AS total,
-                ROUND(AVG(porcentaje)) AS promedio,
-                MAX(porcentaje) AS maximo,
-                MIN(porcentaje) AS minimo
-             FROM mediciones
-             WHERE DATE(fecha) = :hoy'
-        );
-        $stmt->execute([':hoy' => $hoy]);
-        $row = $stmt->fetch();
-        if ($row && $row['total'] > 0) {
-            $resumen = [
-                'total'    => (int) $row['total'],
-                'promedio' => (int) $row['promedio'],
-                'maximo'   => (int) $row['maximo'],
-                'minimo'   => (int) $row['minimo'],
-            ];
+    if ($pdo !== null) {
+        try {
+            $hoy = date('Y-m-d');
+            $stmt = $pdo->prepare(
+                'SELECT
+                    COUNT(*) AS total,
+                    ROUND(AVG( (1 - COALESCE(distance_cm,0) / :tinaco) * 100 )) AS promedio,
+                    MAX( ROUND((1 - COALESCE(distance_cm,0) / :tinaco) * 100) ) AS maximo,
+                    MIN( ROUND((1 - COALESCE(distance_cm,0) / :tinaco) * 100) ) AS minimo
+                 FROM measurements
+                 WHERE DATE(measured_at) = :hoy'
+            );
+            $stmt->execute([':hoy' => $hoy, ':tinaco' => TINACO_ALTO]);
+            $row = $stmt->fetch();
+            if ($row && $row['total'] > 0) {
+                $resumen = [
+                    'total'    => (int) $row['total'],
+                    'promedio' => is_null($row['promedio']) ? null : (int) $row['promedio'],
+                    'maximo'   => is_null($row['maximo']) ? null : (int) $row['maximo'],
+                    'minimo'   => is_null($row['minimo']) ? null : (int) $row['minimo'],
+                ];
+            }
+        } catch (PDOException $e) {
+            // Resumen vacío si falla la consulta
         }
-    } catch (PDOException $e) {
-        // Resumen vacío si falla la consulta
     }
-}
 
 // ── Respuesta JSON ─────────────────────────────────────────
 ob_end_clean();
