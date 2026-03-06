@@ -436,6 +436,14 @@
 
         if (data && data.ok) {
           procesarRespuesta(data);
+          // Mostrar estado de guardado en BD si viene en la respuesta
+          if (typeof data.db_saved !== 'undefined' && data.db_saved !== null) {
+            if (data.db_saved) {
+              mostrarAlerta('ok', '✅ ' + (data.db_msg || 'Guardado en la base de datos'));
+            } else {
+              mostrarAlerta('error', '⚠️ ' + (data.db_msg || 'No se pudo guardar en la base de datos'));
+            }
+          }
           // Recarga historial y resumen desde BD tras la nueva medición
           cargarHistorialBD();
         } else if (data && !data.ok) {

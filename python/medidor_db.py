@@ -15,10 +15,11 @@ if match:
     distancia = float(match.group())
     try:
         conexion = pymysql.connect(
-            host="localhost",
+            host="192.168.0.19",
             user="webuser",
             password="1234",
-            database="medidor_tinaco"
+            database="medidor_tinaco",
+            connect_timeout=5
         )
 
         cursor = conexion.cursor()

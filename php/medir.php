@@ -4,7 +4,9 @@ header("Content-Type: application/json");
 
 $script = "/var/www/html/rpi-ultrasonido/python/medidor_db.py";
 
-$output = shell_exec("sudo python3 $script 2>&1");
+// Ejecutar sin sudo para evitar prompt de contraseña; si el script necesita privilegios,
+// configura sudoers en la Raspberry para el usuario web o ejecuta desde un servicio.
+$output = shell_exec("python3 " . escapeshellarg($script) . " 2>&1");
 
 // Separar líneas y detectar marca de guardado en BD (DB_SAVED:...)
 $lines = preg_split('/\r\n|\r|\n/', trim($output));
