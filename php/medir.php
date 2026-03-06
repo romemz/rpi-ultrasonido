@@ -1,54 +1,131 @@
 <?php
+/**
+ * medir.php
+ * Ejecuta ultrasonido.py, guarda la medición en MariaDB
+ * y devuelve JSON al front-end.
+ */
 
-header("Content-Type: application/json");
+// Limpiar output previo
+if (ob_get_level()) ob_end_clean();
+ob_start();
 
-$script = "/var/www/html/rpi-ultrasonido/python/medidor_db.py";
+header('Content-Type: application/json; charset=utf-8');
 
-// Ejecutar sin sudo para evitar prompt de contraseña; si el script necesita privilegios,
-// configura sudoers en la Raspberry para el usuario web o ejecuta desde un servicio.
-$output = shell_exec("python3 " . escapeshellarg($script) . " 2>&1");
-
-// Separar líneas y detectar marca de guardado en BD (DB_SAVED:...)
-$lines = preg_split('/\r\n|\r|\n/', trim($output));
-$db_saved = null;
-$db_msg = null;
-
-if (!empty($lines)) {
-    $last = end($lines);
-    if (strpos($last, 'DB_SAVED:') === 0) {
-        // Extraer resultado de DB y quitar última línea del resultado impreso
-        $parts = explode(':', $last, 3);
-        if (isset($parts[1]) && $parts[1] === 'OK') {
-            $db_saved = true;
-            $db_msg = 'Guardado correctamente';
-        } else {
-            $db_saved = false;
-            $db_msg = isset($parts[2]) ? $parts[2] : 'Error desconocido al guardar';
-        }
-        // Reconstruir el output sin la línea de DB
-        array_pop($lines);
-    }
+// Solo POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    ob_end_clean();
+    echo json_encode(['ok' => false, 'error' => 'Método no permitido']);
+    exit;
 }
 
-$sensor_output = implode("\n", $lines);
+// Configuración: usar ruta relativa al repositorio (rpi-ultrasonido-master)
+define('PYTHON_BIN',  'python3');
+$scriptPath = realpath(__DIR__ . '/../python/ultrasonido.py');
+if ($scriptPath === false) {
+    // Fallback a la ruta clásica por si no está donde esperamos
+    $scriptPath = '/var/www/html/rpi-ultrasonido/python/ultrasonido.py';
+}
+define('TINACO_ALTO', 100);      // alto real en cm
+define('TINACO_ID',   1);
 
-// Si la salida del script contiene un documento HTML (p. ej. 404 de Apache),
-// devolvemos un JSON de error para evitar mostrar HTML crudo en la UI.
-$lower = strtolower($sensor_output);
-if (strpos($lower, '<!doctype') !== false || strpos($lower, '<html') !== false || strpos($lower, 'not found') !== false) {
+require_once __DIR__ . '/db.php';
+
+// Ejecutar script Python
+$comando  = PYTHON_BIN . ' ' . escapeshellarg($scriptPath) . ' 2>&1';
+$salida   = [];
+$exitCode = 0;
+exec($comando, $salida, $exitCode);
+
+if ($exitCode !== 0) {
+    $errorStr = implode(' | ', $salida);
+    http_response_code(500);
+    ob_end_clean();
+    echo json_encode(['ok' => false, 'error' => 'Error al ejecutar el sensor', 'detalle' => $errorStr]);
+    exit;
+}
+
+// Buscar línea con el resultado
+$lineaMedicion = '';
+for ($i = count($salida) - 1; $i >= 0; $i--) {
+    $linea = trim($salida[$i]);
+    if ($linea === '') continue;
+
+    if (stripos($linea, 'Distancia:') !== false || stripos($linea, 'Fuera de Rango') !== false || stripos($linea, 'Sensor no detectado') !== false) {
+        $lineaMedicion = $linea;
+        break;
+    }
+    if ($lineaMedicion === '') $lineaMedicion = $linea;
+}
+
+// Manejo de casos sin señal
+if (stripos($lineaMedicion, 'Sensor no detectado') !== false) {
+    ob_end_clean();
     echo json_encode([
-        "ok" => false,
-        "error" => 'Recurso no encontrado o error remoto',
-        "resultado_raw" => $sensor_output,
-        "db_saved" => $db_saved,
-        "db_msg" => $db_msg
+        'ok'         => true,
+        'fuera'      => true,
+        'texto'      => '⚠️ Sensor fuera del tinaco o sin obstáculo detectado',
+        'distancia'  => null,
+        'porcentaje' => null,
+        'estado'     => 'sin_señal',
+        'timestamp'  => date('Y-m-d H:i:s'),
+        'db_saved'   => null,
+        'db_msg'     => null,
     ]);
     exit;
 }
 
+$distancia  = null;
+$porcentaje = null;
+$estado     = 'desconocido';
+
+$match = [];
+if (preg_match('/[\d.]+/', $lineaMedicion, $match)) {
+    $distancia  = (float) $match[0];
+    $porcentaje = max(0, min(100, (int) round((1 - $distancia / TINACO_ALTO) * 100)));
+
+    if ($porcentaje <= 25)      $estado = 'critico';
+    elseif ($porcentaje <= 50)  $estado = 'bajo';
+    else                        $estado = 'normal';
+}
+
+$db_saved = null;
+$db_msg = null;
+if ($distancia !== null) {
+    try {
+        $pdo = getDB();
+        if ($pdo === null) throw new Exception('No hay conexión a la base de datos');
+        $pdo->setAttribute(PDO::ATTR_TIMEOUT, 3);
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO mediciones (tinaco_id, distancia_cm, porcentaje, estado)
+             VALUES (:tinaco_id, :distancia_cm, :porcentaje, :estado)'
+        );
+        $stmt->execute([
+            ':tinaco_id'    => TINACO_ID,
+            ':distancia_cm' => $distancia,
+            ':porcentaje'   => $porcentaje,
+            ':estado'       => $estado,
+        ]);
+
+        $db_saved = true;
+        $db_msg = 'Guardado correctamente';
+    } catch (Exception $e) {
+        $db_saved = false;
+        $db_msg = $e->getMessage();
+        error_log('[medidor_tinaco] Error BD: ' . $db_msg);
+    }
+}
+
+ob_end_clean();
 echo json_encode([
-    "ok" => true,
-    "resultado" => $sensor_output,
-    "db_saved" => $db_saved,
-    "db_msg" => $db_msg
+    'ok'         => true,
+    'fuera'      => false,
+    'texto'      => $lineaMedicion,
+    'distancia'  => $distancia,
+    'porcentaje' => $porcentaje,
+    'estado'     => $estado,
+    'timestamp'  => date('Y-m-d H:i:s'),
+    'db_saved'   => $db_saved,
+    'db_msg'     => $db_msg,
 ]);

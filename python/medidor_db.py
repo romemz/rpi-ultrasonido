@@ -1,10 +1,11 @@
+import os
 import pymysql
 import subprocess
 import re
 
-resultado = subprocess.check_output(
-    ["python3","/var/www/html/rpi-ultrasonido/python/ultrasonido.py"]
-).decode()
+# Ejecutar ultrasonido.py en el mismo repositorio (ruta relativa)
+ultra_path = os.path.join(os.path.dirname(__file__), 'ultrasonido.py')
+resultado = subprocess.check_output(["python3", ultra_path]).decode()
 
 print(resultado)
 
