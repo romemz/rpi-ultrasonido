@@ -31,18 +31,37 @@ define('TINACO_ID',   1);
 
 require_once __DIR__ . '/db.php';
 
-// Ejecutar script Python
-$comando  = PYTHON_BIN . ' ' . escapeshellarg($scriptPath) . ' 2>&1';
+// Ejecutar script Python — intentamos con sudo sin contraseña primero
 $salida   = [];
 $exitCode = 0;
-exec($comando, $salida, $exitCode);
+$sudoCmd = 'sudo -n ' . PYTHON_BIN . ' ' . escapeshellarg($scriptPath) . ' 2>&1';
+exec($sudoCmd, $salida, $exitCode);
 
+// Si sudo devolvió error por permisos, devolvemos instrucción clara para configurar sudoers
 if ($exitCode !== 0) {
-    $errorStr = implode(' | ', $salida);
-    http_response_code(500);
-    ob_end_clean();
-    echo json_encode(['ok' => false, 'error' => 'Error al ejecutar el sensor', 'detalle' => $errorStr]);
-    exit;
+    $outputStr = implode("\n", $salida);
+    // Detectar el caso típico de acceso a GPIO (no access to /dev/mem)
+    if (stripos($outputStr, 'No access to /dev/mem') !== false || stripos($outputStr, 'Try running as root') !== false) {
+        ob_end_clean();
+        echo json_encode([
+            'ok'    => false,
+            'error' => 'Permisos insuficientes para acceder a GPIO',
+            'detalle' => 'El script necesita ejecutarse como root. Configure sudoers para permitir que el usuario del servidor web ejecute el script sin contraseña.'
+        ]);
+        exit;
+    }
+    // Si la falla no es de GPIO, intentando ejecutar sin sudo como fallback
+    $salida = [];
+    $exitCode = 0;
+    $cmdNoSudo = PYTHON_BIN . ' ' . escapeshellarg($scriptPath) . ' 2>&1';
+    exec($cmdNoSudo, $salida, $exitCode);
+    if ($exitCode !== 0) {
+        $errorStr = implode(' | ', $salida);
+        http_response_code(500);
+        ob_end_clean();
+        echo json_encode(['ok' => false, 'error' => 'Error al ejecutar el sensor', 'detalle' => $errorStr]);
+        exit;
+    }
 }
 
 // Buscar línea con el resultado
