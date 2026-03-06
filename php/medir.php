@@ -30,6 +30,20 @@ if (!empty($lines)) {
 
 $sensor_output = implode("\n", $lines);
 
+// Si la salida del script contiene un documento HTML (p. ej. 404 de Apache),
+// devolvemos un JSON de error para evitar mostrar HTML crudo en la UI.
+$lower = strtolower($sensor_output);
+if (strpos($lower, '<!doctype') !== false || strpos($lower, '<html') !== false || strpos($lower, 'not found') !== false) {
+    echo json_encode([
+        "ok" => false,
+        "error" => 'Recurso no encontrado o error remoto',
+        "resultado_raw" => $sensor_output,
+        "db_saved" => $db_saved,
+        "db_msg" => $db_msg
+    ]);
+    exit;
+}
+
 echo json_encode([
     "ok" => true,
     "resultado" => $sensor_output,
