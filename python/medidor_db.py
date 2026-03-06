@@ -13,23 +13,28 @@ match = re.search(r"[\d.]+", resultado)
 if match:
 
     distancia = float(match.group())
+    try:
+        conexion = pymysql.connect(
+            host="localhost",
+            user="webuser",
+            password="1234",
+            database="medidor_tinaco"
+        )
 
-    conexion = pymysql.connect(
-        host="localhost",
-        user="webuser",
-        password="1234",
-        database="medidor_tinaco"
-    )
+        cursor = conexion.cursor()
 
-    cursor = conexion.cursor()
+        sql = """
+        INSERT INTO mediciones (tinaco_id, distancia_cm)
+        VALUES (1,%s)
+        """
 
-    sql = """
-    INSERT INTO mediciones (tinaco_id, distancia_cm)
-    VALUES (1,%s)
-    """
+        cursor.execute(sql,(distancia,))
+        conexion.commit()
 
-    cursor.execute(sql,(distancia,))
-    conexion.commit()
+        cursor.close()
+        conexion.close()
 
-    cursor.close()
-    conexion.close()
+        print("DB_SAVED:OK")
+    except Exception as e:
+        # Imprimir error de BD para que php pueda detectarlo
+        print("DB_SAVED:ERROR:" + str(e))
