@@ -1,54 +1,76 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# pyright: reportMissingImports=false
-"""
-Tomado en gran parte de:
-https://electrosome.com/hc-sr04-ultrasonic-sensor-raspberry-pi/
-
-Formula para calcular la distancia
-
-d = V * (t / 2)
-V = velocidad del sonido
-t = tiempo, que tarda la señal de ir del emisor al obstaculo y volver al receptor
-"""
 
 import importlib
 import time
+import pymysql
 
 GPIO = importlib.import_module("RPi.GPIO")
 
 GPIO.setmode(GPIO.BCM)
 
-TRIG = 23  # pin 23 como TRIG
-ECHO = 24  # pin 24 como ECHO
-V = 34300  # Velocidad del sonido 34300 cm/s
+TRIG = 23
+ECHO = 24
+V = 34300
+
+# CONEXION A LA BASE DE DATOS
+conexion = pymysql.connect(
+    host="localhost",
+    user="root",
+    password="",
+    database="medidor_tinaco"
+)
+
+cursor = conexion.cursor()
 
 print("Medicion de la distancia en curso")
 
-GPIO.setup(TRIG, GPIO.OUT)  # TRIG como salida
-GPIO.setup(ECHO, GPIO.IN)  # ECHO como entrada
+GPIO.setup(TRIG, GPIO.OUT)
+GPIO.setup(ECHO, GPIO.IN)
 
-GPIO.output(TRIG, False)  # TRIG en estado bajo
-print("Espere que el sensor se estabilice")
-time.sleep(2)  # Esperar 2 segundos
+GPIO.output(TRIG, False)
+time.sleep(2)
 
-GPIO.output(TRIG, True)  # TRIG en estado alto
-time.sleep(0.00001)  # Delay de 0.00001 segundos
-GPIO.output(TRIG, False)  # TRIG en estado bajo
+GPIO.output(TRIG, True)
+time.sleep(0.00001)
+GPIO.output(TRIG, False)
 
-while GPIO.input(ECHO) == 0:  # Comprueba si ECHO está en estado bajo
-    pulse_start = time.time()  # Guarda el tiempo transcurrido en estado bajo
+while GPIO.input(ECHO) == 0:
+    pulse_start = time.time()
 
-while GPIO.input(ECHO) == 1:  # Comprueba si ECHO está en estado alto
-    pulse_end = time.time()  # Guarda el tiempo transcurrido en estado alto
+while GPIO.input(ECHO) == 1:
+    pulse_end = time.time()
 
 t = pulse_end - pulse_start
-distancia = t * (V / 2)
-distancia = round(distancia, 2)
+distancia = round(t * (V / 2), 2)
 
-if 2 < distancia < 400:  # Comprueba si la distancia está dentro del rango
+if 2 < distancia < 400:
+
+    porcentaje = int((1 - distancia / 100) * 100)
+
+    if porcentaje < 25:
+        estado = "critico"
+    elif porcentaje < 50:
+        estado = "bajo"
+    else:
+        estado = "normal"
+
     print("Distancia:", distancia, "cm")
-else:
-    print("Fuera de Rango")
 
-GPIO.cleanup()  # Limpia los pines
+    sql = """
+    INSERT INTO mediciones (tinaco_id, distancia_cm, porcentaje, estado)
+    VALUES (%s,%s,%s,%s)
+    """
+
+    cursor.execute(sql, (1, distancia, porcentaje, estado))
+    conexion.commit()
+
+    print("Dato guardado en la base de datos")
+
+else:
+    print("Fuera de rango")
+
+GPIO.cleanup()
+
+cursor.close()
+conexion.close()
