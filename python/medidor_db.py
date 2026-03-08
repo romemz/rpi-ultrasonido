@@ -2,7 +2,7 @@ import subprocess
 import pymysql
 
 resultado = subprocess.check_output(
-    ["python3","/var/www/rpi-ultrasonido/python/ultrasonido.py"]
+    ["python3","/var/www/html/rpi-ultrasonido/python/ultrasonido.py"]
 ).decode().strip()
 
 distancia = float(resultado)
