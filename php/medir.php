@@ -2,38 +2,32 @@
 
 header('Content-Type: application/json');
 
-// Ejecutar el script Python
 $salida = shell_exec("sudo python3 /var/www/html/rpi-ultrasonido/python/medidor_db.py 2>&1");
 
-// Valores por defecto
 $distancia = 0;
 $nivel = 0;
-$estado = "Desconocido";
+$estado = "Bajo";
 
-// Extraer datos del texto que devuelve Python
-if(preg_match('/Distancia:\s*([0-9.]+)/', $salida, $d)){
-    $distancia = floatval($d[1]);
-}
+preg_match('/Distancia:\s*([0-9.]+)/', $salida, $d);
+preg_match('/Nivel:\s*([0-9]+)/', $salida, $n);
+preg_match('/Estado:\s*(\w+)/', $salida, $e);
 
-if(preg_match('/Nivel:\s*([0-9]+)/', $salida, $n)){
-    $nivel = intval($n[1]);
-}
+if(isset($d[1])) $distancia = floatval($d[1]);
+if(isset($n[1])) $nivel = intval($n[1]);
+if(isset($e[1])) $estado = $e[1];
 
-if(preg_match('/Estado:\s*(\w+)/', $salida, $e)){
-    $estado = $e[1];
-}
-
-// Hora actual
-$hora = date("H:i:s");
-
-// Enviar JSON que espera el frontend
 echo json_encode([
-    "ok" => true,
-    "distancia" => $distancia,
-    "nivel" => $nivel,
-    "estado" => $estado,
-    "hora" => $hora,
-    "texto" => "Distancia: $distancia cm | Nivel: $nivel % | Estado: $estado"
+    "distancia"=>$distancia,
+    "nivel"=>$nivel,
+    "estado"=>$estado,
+
+    "porcentaje"=>$nivel,
+    "promedio"=>$nivel,
+    "maximo"=>$nivel,
+    "minimo"=>$nivel,
+
+    "hora"=>date("H:i:s"),
+    "ok"=>true
 ]);
 
 ?>
