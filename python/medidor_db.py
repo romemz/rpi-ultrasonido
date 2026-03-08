@@ -6,20 +6,23 @@ resultado = subprocess.check_output(
     ["python3","/var/www/html/rpi-ultrasonido/python/ultrasonido.py"]
 ).decode().strip()
 
+# Extraer solo el número de la distancia
 distancia = float(resultado)
 
-# Altura total del tinaco en cm
-altura_tinaco = 120
+# Altura total del tinaco
+altura_tinaco = 100
 
-porcentaje = int((1 - distancia/altura_tinaco)*100)
+# Calcular porcentaje
+porcentaje = int((1 - distancia/altura_tinaco) * 100)
 
+# Limitar valores
 if porcentaje < 0:
     porcentaje = 0
 
 if porcentaje > 100:
     porcentaje = 100
 
-# Estado del tinaco
+# Determinar estado
 if porcentaje >= 70:
     estado = "Lleno"
 elif porcentaje >= 30:
@@ -27,7 +30,7 @@ elif porcentaje >= 30:
 else:
     estado = "Bajo"
 
-# Conexión a base de datos
+# Conectar a la base de datos
 conexion = pymysql.connect(
     host="localhost",
     user="webuser",
