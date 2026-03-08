@@ -39,6 +39,6 @@ while GPIO.input(ECHO) == 1:
 t = pulse_end - pulse_start
 distancia = round(t * (V / 2), 2)
 
-print(distancia)
+print(f"La distancia es {distancia} cm")
 
 GPIO.cleanup()
