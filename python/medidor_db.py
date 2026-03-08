@@ -1,42 +1,27 @@
-import os
-import pymysql
 import subprocess
-import re
+import pymysql
 
-# Ejecutar ultrasonido.py en el mismo repositorio (ruta relativa)
-ultra_path = os.path.join(os.path.dirname(__file__), 'ultrasonido.py')
-resultado = subprocess.check_output(["python3", ultra_path]).decode()
+resultado = subprocess.check_output(
+    ["python3","/var/www/html/rpi-ultrasonido/python/ultrasonido.py"]
+).decode().strip()
 
-print(resultado)
+distancia = float(resultado)
 
-match = re.search(r"[\d.]+", resultado)
+conexion = pymysql.connect(
+    host="localhost",
+    user="webuser",
+    password="1234",
+    database="medidor_tinaco"
+)
 
-if match:
+cursor = conexion.cursor()
 
-    distancia = float(match.group())
-    try:
-        conexion = pymysql.connect(
-            host="192.168.0.19",
-            user="webuser",
-            password="1234",
-            database="medidor_tinaco",
-            connect_timeout=5
-        )
+sql = "INSERT INTO mediciones (distancia_cm) VALUES (%s)"
 
-        cursor = conexion.cursor()
+cursor.execute(sql,(distancia,))
+conexion.commit()
 
-        sql = """
-        INSERT INTO mediciones (tinaco_id, distancia_cm)
-        VALUES (1,%s)
-        """
+cursor.close()
+conexion.close()
 
-        cursor.execute(sql,(distancia,))
-        conexion.commit()
-
-        cursor.close()
-        conexion.close()
-
-        print("DB_SAVED:OK")
-    except Exception as e:
-        # Imprimir error de BD para que php pueda detectarlo
-        print("DB_SAVED:ERROR:" + str(e))
+print("Distancia guardada:", distancia)

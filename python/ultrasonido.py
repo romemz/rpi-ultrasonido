@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-import importlib
+import RPi.GPIO as GPIO
 import time
-
-GPIO = importlib.import_module("RPi.GPIO")
 
 GPIO.setmode(GPIO.BCM)
 
@@ -29,9 +26,6 @@ while GPIO.input(ECHO) == 1:
 t = pulse_end - pulse_start
 distancia = round(t * (V / 2), 2)
 
-if 2 < distancia < 400:
-    print(f"Distancia: {distancia}")
-else:
-    print("Fuera de Rango")
+print(distancia)
 
 GPIO.cleanup()
