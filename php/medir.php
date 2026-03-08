@@ -6,28 +6,31 @@ $salida = shell_exec("sudo python3 /var/www/html/rpi-ultrasonido/python/medidor_
 
 $distancia = 0;
 $nivel = 0;
-$estado = "Bajo";
+$estado = "Desconocido";
 
-preg_match('/Distancia:\s*([0-9.]+)/', $salida, $d);
-preg_match('/Nivel:\s*([0-9]+)/', $salida, $n);
-preg_match('/Estado:\s*(\w+)/', $salida, $e);
+if(preg_match('/Distancia:\s*([0-9.]+)/', $salida, $match)){
+    $distancia = floatval($match[1]);
+}
 
-if(isset($d[1])) $distancia = floatval($d[1]);
-if(isset($n[1])) $nivel = intval($n[1]);
-if(isset($e[1])) $estado = $e[1];
+if(preg_match('/Nivel:\s*([0-9]+)/', $salida, $match)){
+    $nivel = intval($match[1]);
+}
+
+if(preg_match('/Estado:\s*([A-Za-z]+)/', $salida, $match)){
+    $estado = $match[1];
+}
 
 echo json_encode([
-    "distancia"=>$distancia,
-    "nivel"=>$nivel,
-    "estado"=>$estado,
-
-    "porcentaje"=>$nivel,
-    "promedio"=>$nivel,
-    "maximo"=>$nivel,
-    "minimo"=>$nivel,
-
-    "hora"=>date("H:i:s"),
-    "ok"=>true
+    "ok" => true,
+    "distancia" => $distancia,
+    "nivel" => $nivel,
+    "porcentaje" => $nivel,
+    "estado" => $estado,
+    "promedio" => $nivel,
+    "maximo" => $nivel,
+    "minimo" => $nivel,
+    "hora" => date("H:i:s"),
+    "texto" => $salida
 ]);
 
 ?>
