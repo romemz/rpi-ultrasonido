@@ -1,55 +1,34 @@
 import RPi.GPIO as GPIO
 import time
-import sys
 
 TRIG = 23
 ECHO = 24
 
 GPIO.setmode(GPIO.BCM)
+
 GPIO.setup(TRIG, GPIO.OUT)
 GPIO.setup(ECHO, GPIO.IN)
 
 GPIO.output(TRIG, False)
-time.sleep(0.5)
 
-try:
+time.sleep(2)
 
-    # Pulso de disparo
-    GPIO.output(TRIG, True)
-    time.sleep(0.00001)
-    GPIO.output(TRIG, False)
+# Enviar pulso
+GPIO.output(TRIG, True)
+time.sleep(0.00001)
+GPIO.output(TRIG, False)
 
-    inicio = time.time()
-    timeout = inicio + 0.04
+while GPIO.input(ECHO) == 0:
+    pulse_start = time.time()
 
-    while GPIO.input(ECHO) == 0:
-        inicio = time.time()
-        if inicio > timeout:
-            print("0")
-            GPIO.cleanup()
-            sys.exit()
+while GPIO.input(ECHO) == 1:
+    pulse_end = time.time()
 
-    fin = time.time()
-    timeout = fin + 0.04
+pulse_duration = pulse_end - pulse_start
 
-    while GPIO.input(ECHO) == 1:
-        fin = time.time()
-        if fin > timeout:
-            print("0")
-            GPIO.cleanup()
-            sys.exit()
+distancia = pulse_duration * 17150
+distancia = round(distancia, 2)
 
-    duracion = fin - inicio
+print(distancia)
 
-    distancia = (duracion * 34300) / 2
-    distancia = round(distancia,2)
-
-    print(distancia)
-
-except Exception as e:
-
-    print("0")
-
-finally:
-
-    GPIO.cleanup()
+GPIO.cleanup()
