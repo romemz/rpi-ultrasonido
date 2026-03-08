@@ -1,28 +1,516 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="es">
 <head>
-<title>Medidor Tinaco</title>
-</head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Medidor Inteligente – UTC</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+  <style>
+    :root {
+      --azul:   #0a74da;
+      --azul2:  #0550a0;
+      --cyan:   #00d4ff;
+      --fondo:  #060d1a;
+      --panel:  #0d1b2e;
+      --borde:  #163352;
+      --texto:  #cde7ff;
+      --critico:#ff4757;
+      --ok:     #2ed573;
+      --warn:   #ffa502;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; }
+
+    body {
+      background: var(--fondo);
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(10,116,218,.12) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(0,212,255,.06) 0%, transparent 60%);
+      font-family: 'Inter', sans-serif;
+      color: var(--texto);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--borde);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo-area { display: flex; align-items: center; gap: 10px; }
+    .logo-circle {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--azul), var(--cyan));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Rajdhani', sans-serif; font-weight: 700;
+      font-size: 14px; color: #fff;
+    }
+    .logo-text h1 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(13px, 3vw, 17px);
+      font-weight: 700; color: #fff; letter-spacing: 1px;
+    }
+    .logo-text p { font-size: clamp(9px, 2vw, 11px); color: #7aadcc; }
+
+    .status-bar { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #7aadcc; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* ── LAYOUT ── */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 20px;
+      padding: 24px 28px;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ── TARJETA ── */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--borde);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .card-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: var(--cyan); margin-bottom: 16px;
+    }
+
+    /* ── TINACO ── */
+    .tinaco-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .tinaco-svg-area { width: clamp(140px, 40vw, 200px); }
+    .tinaco-svg-area svg { width: 100%; }
+    #agua-fill { transition: height 1.2s ease, y 1.2s ease; }
+    .wave { animation: waveMove 3s linear infinite; }
+    @keyframes waveMove { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+    /* ── PORCENTAJE ── */
+    .pct-display { text-align: center; }
+    .pct-display .num {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(48px, 12vw, 72px);
+      font-weight: 700; line-height: 1;
+      background: linear-gradient(135deg, var(--cyan), var(--azul));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .pct-display .lbl { font-size: 12px; color: #7aadcc; margin-top: 2px; }
+
+    /* ── BADGE DISTANCIA ── */
+    .dist-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(0,212,255,.08);
+      border: 1px solid rgba(0,212,255,.2);
+      border-radius: 30px; padding: 7px 16px;
+      font-size: 13px; color: var(--cyan);
+    }
+    .dist-badge .val { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; }
+
+    /* ── BOTÓN ── */
+    .btn-medir {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, var(--azul2), var(--azul));
+      border: none; border-radius: 12px;
+      color: #fff; font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(15px, 4vw, 18px); font-weight: 700; letter-spacing: 1px;
+      cursor: pointer; transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 4px 20px rgba(10,116,218,.4);
+      min-height: 48px;
+    }
+    .btn-medir:hover   { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(10,116,218,.6); }
+    .btn-medir:active  { transform: scale(.97); }
+    .btn-medir:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* ── LOADER ── */
+    .loader-wrap { display: none; flex-direction: column; align-items: center; gap: 10px; padding: 14px 0; }
+    .loader-wrap.show { display: flex; }
+    .spinner {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 3px solid var(--borde); border-top-color: var(--cyan);
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader-wrap p { font-size: 12px; color: #7aadcc; }
+
+    /* ── ALERTA ── */
+    .alerta {
+      display: none; margin-top: 10px;
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 13px; font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .alerta.show    { display: block; }
+    .alerta.critico { background: rgba(255,71,87,.12);  border-color: var(--critico); color: var(--critico); }
+    .alerta.ok      { background: rgba(46,213,115,.10); border-color: var(--ok);      color: var(--ok); }
+    .alerta.warn    { background: rgba(255,165,2,.10);  border-color: var(--warn);    color: var(--warn); }
+    .alerta.error   { background: rgba(255,71,87,.12);  border-color: var(--critico); color: var(--critico); }
+
+    /* ── PANEL DERECHO ── */
+    .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+    .historial-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .historial-list li {
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,.03); border-radius: 8px; padding: 7px 10px;
+      font-size: 12px; border-left: 3px solid var(--azul);
+    }
+    .historial-list li .time { color: #7aadcc; font-size: 10px; }
+    .historial-list li .val  { font-family: 'Rajdhani', sans-serif; font-size: 15px; color: var(--cyan); }
+    .empty-hist { font-size: 12px; color: #456; text-align: center; padding: 14px 0; }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .info-item {
+      background: rgba(255,255,255,.03); border-radius: 10px;
+      padding: 10px; border: 1px solid var(--borde);
+    }
+    .info-item .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #7aadcc; margin-bottom: 3px; }
+    .info-item .val { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: #fff; }
+
+    .nivel-ref { display: flex; flex-direction: column; gap: 7px; font-size: 12px; }
+    .nivel-ref div { display: flex; align-items: center; gap: 7px; }
+    .nivel-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center; padding: 12px;
+      font-size: 10px; color: #2a4a66;
+      border-top: 1px solid var(--borde);
+    }
+
+    /* ── RESPONSIVE TABLET ≤ 900px ── */
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; padding: 16px; gap: 16px; }
+      .right-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    }
+
+    /* ── RESPONSIVE MÓVIL ≤ 600px ── */
+    @media (max-width: 600px) {
+      header { padding: 10px 14px; }
+      .logo-circle { width: 34px; height: 34px; font-size: 12px; }
+      .logo-text p { display: none; }
+      main { padding: 12px; gap: 12px; }
+      .card { padding: 16px; border-radius: 12px; }
+      .right-col { display: flex; flex-direction: column; gap: 12px; }
+      .tinaco-wrap { gap: 12px; }
+      .tinaco-svg-area { width: clamp(120px, 50vw, 160px); }
+      .historial-list li { font-size: 11px; }
+      .info-grid { grid-template-columns: repeat(3, 1fr); }
+      footer { font-size: 9px; padding: 10px; }
+    }
+
+    /* ── RESPONSIVE MÓVIL PEQUEÑO ≤ 380px ── */
+    @media (max-width: 380px) {
+      .info-grid { grid-template-columns: 1fr 1fr; }
+      .btn-medir { font-size: 14px; padding: 12px; }
+    }
+  </style>
+</head>
 <body>
 
-<h1>Medir nivel</h1>
+<!-- ══════════ HEADER ══════════ -->
+<header>
+  <div class="logo-area">
+    <div class="logo-circle">UTC</div>
+    <div class="logo-text">
+      <h1>MEDIDOR INTELIGENTE</h1>
+      <p>Niveles en Tinacos · Universidad Tecnológica de Coahuila</p>
+    </div>
+  </div>
+  <div class="status-bar">
+    <div class="dot"></div>
+    <span>Activo</span>
+  </div>
+</header>
 
-<button onclick="medir()">Medir</button>
+<!-- ══════════ MAIN ══════════ -->
+<main>
 
-<pre id="resultado"></pre>
+  <!-- ── COLUMNA PRINCIPAL ── -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
 
+    <!-- Tarjeta tinaco -->
+    <div class="card">
+      <div class="card-title">📡 Nivel actual del tinaco</div>
+      <div class="tinaco-wrap">
+
+        <div class="tinaco-svg-area">
+          <svg viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <clipPath id="clip-tinaco">
+                <rect x="20" y="40" width="160" height="200" rx="8"/>
+              </clipPath>
+              <linearGradient id="grad-agua" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="#0550a0" stop-opacity="1"/>
+              </linearGradient>
+            </defs>
+            <ellipse cx="100" cy="42" rx="82" ry="12" fill="#163352" stroke="#1e4a78" stroke-width="1.5"/>
+            <rect x="20" y="40" width="160" height="200" rx="8" fill="#0d1b2e" stroke="#1e4a78" stroke-width="1.5"/>
+            <g clip-path="url(#clip-tinaco)">
+              <rect id="agua-fill" x="20" y="240" width="160" height="0" fill="url(#grad-agua)" opacity="0.85"/>
+              <path id="wave-path" class="wave"
+                d="M0 240 Q25 233 50 240 Q75 247 100 240 Q125 233 150 240 Q175 247 200 240 Q225 233 250 240 Q275 247 300 240 L300 260 L0 260 Z"
+                fill="url(#grad-agua)" opacity="0.5"/>
+            </g>
+            <line x1="176" y1="62"  x2="183" y2="62"  stroke="#1e4a78" stroke-width="1"/>
+            <line x1="176" y1="112" x2="183" y2="112" stroke="#1e4a78" stroke-width="1"/>
+            <line x1="176" y1="162" x2="183" y2="162" stroke="#1e4a78" stroke-width="1"/>
+            <line x1="176" y1="212" x2="183" y2="212" stroke="#1e4a78" stroke-width="1"/>
+            <text x="186" y="65"  fill="#7aadcc" font-size="8" font-family="Inter">100%</text>
+            <text x="186" y="115" fill="#7aadcc" font-size="8" font-family="Inter">75%</text>
+            <text x="186" y="165" fill="#7aadcc" font-size="8" font-family="Inter">50%</text>
+            <text x="186" y="215" fill="#7aadcc" font-size="8" font-family="Inter">25%</text>
+            <line id="nivel-line" x1="20" y1="240" x2="180" y2="240"
+                  stroke="#00d4ff" stroke-width="1" stroke-dasharray="4 3" opacity="0.6"/>
+            <rect x="60" y="240" width="80" height="10" rx="4" fill="#163352"/>
+            <rect x="80" y="250" width="40" height="6"  rx="3" fill="#0d1b2e" stroke="#1e4a78" stroke-width="1"/>
+          </svg>
+        </div>
+
+        <div class="pct-display">
+          <div class="num" id="pct-num">–</div>
+          <div class="lbl">Nivel de llenado</div>
+        </div>
+
+        <div class="dist-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+          Resultado: <span class="val" id="dist-val">—</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tarjeta botón -->
+    <div class="card">
+      <div class="card-title">⚡ Control de medición</div>
+      <button class="btn-medir" id="btn-medir">MEDIR AHORA</button>
+      <div class="loader-wrap" id="load-midiendo">
+        <div class="spinner"></div>
+        <p>Midiendo con sensor ultrasónico…</p>
+      </div>
+      <div class="alerta" id="alerta"></div>
+    </div>
+
+  </div>
+
+  <!-- ── COLUMNA DERECHA ── -->
+  <div class="right-col">
+
+    <div class="card">
+      <div class="card-title">📊 Resumen del día</div>
+      <div class="info-grid">
+        <div class="info-item"><div class="lbl">Mediciones</div><div class="val" id="res-total">0</div></div>
+        <div class="info-item"><div class="lbl">Promedio</div><div class="val" id="res-prom">—</div></div>
+        <div class="info-item"><div class="lbl">Máximo</div><div class="val" id="res-max">—</div></div>
+        <div class="info-item"><div class="lbl">Mínimo</div><div class="val" id="res-min">—</div></div>
+        <div class="info-item" style="grid-column:span 2">
+          <div class="lbl">Última medición</div>
+          <div class="val" id="res-ultima" style="font-size:13px;color:#7aadcc">Sin mediciones aún</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="flex:1">
+      <div class="card-title">📋 Historial de lecturas</div>
+      <ul class="historial-list" id="historial">
+        <li class="empty-hist" style="border:none">Sin lecturas aún</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🚨 Niveles de alerta</div>
+      <div class="nivel-ref">
+        <div><span class="nivel-dot" style="background:var(--critico)"></span>Crítico ≤ 25%</div>
+        <div><span class="nivel-dot" style="background:var(--warn)"></span>Precaución 26–50%</div>
+        <div><span class="nivel-dot" style="background:var(--ok)"></span>Normal &gt; 50%</div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+  Universidad Tecnológica de Coahuila · Ramos Arizpe, Coahuila ·
+  Medidor Inteligente de Niveles en Tinacos — TSU Desarrollo de Software · 2025
+</footer>
+
+<!-- ══════════ SCRIPT ══════════ -->
 <script>
-function medir(){
+  // ── Ajusta al alto real de tu tinaco en cm ──
+  var TINACO_ALTO_CM = 100;
 
-fetch("medir.php")
-.then(r=>r.json())
-.then(data=>{
-document.getElementById("resultado").textContent =
-JSON.stringify(data,null,2)
-})
+  var historial  = [];
+  var resumen    = { total: 0, suma: 0, max: null, min: null, ultimaHora: null };
 
-}
+  $('#btn-medir').click(function () {
+    var $btn = $(this);
+    $btn.prop('disabled', true);
+    $('#load-midiendo').addClass('show');
+    ocultarAlerta();
+    $('#dist-val').text('—');
+
+    $.ajax({
+      url: 'php/medir.php',
+      type: 'POST',
+
+      success: function (resp) {
+        // Parseo tolerante: funciona aunque haya texto extra alrededor del JSON
+        var data = null;
+        try {
+          data = (typeof resp === 'object') ? resp : JSON.parse(resp);
+        } catch (e) {
+          var match = String(resp).match(/\{[\s\S]*\}/);
+          if (match) {
+            try { data = JSON.parse(match[0]); } catch (e2) { data = null; }
+          }
+        }
+
+        if (data && data.ok) {
+          procesarRespuesta(data);
+        } else if (data && !data.ok) {
+          mostrarAlerta('error', '⚠️ ' + (data.error || 'Error desconocido'));
+          $('#dist-val').text(data.error || 'Error');
+        } else {
+          mostrarAlerta('error', '⚠️ Respuesta inesperada del servidor');
+          $('#dist-val').text('Error de formato');
+        }
+      },
+
+      error: function (xhr) {
+        var msg = xhr.responseText || 'Error de comunicación con el servidor';
+        mostrarAlerta('error', '⚠️ ' + msg);
+        $('#dist-val').text(msg);
+      },
+
+      complete: function () {
+        $btn.prop('disabled', false);
+        $('#load-midiendo').removeClass('show');
+      }
+    });
+  });
+
+  function procesarRespuesta(data) {
+    $('#dist-val').text(data.texto);
+    if (data.distancia !== null) {
+      actualizarTinaco(data.porcentaje);
+      actualizarAlerta(data.porcentaje, data.estado);
+      agregarHistorial(data.texto, data.porcentaje);
+      // Resumen viene de MariaDB si está disponible
+      if (data.resumen && data.resumen.total > 0) {
+        actualizarResumenDB(data.resumen, data.porcentaje, data.timestamp);
+      } else {
+        actualizarResumen(data.porcentaje);
+      }
+    } else {
+      mostrarAlerta('error', '⚠️ ' + data.texto);
+    }
+  }
+
+  function actualizarTinaco(pct) {
+    $('#pct-num').text(pct + '%');
+    var alturaAgua = Math.round(pct * 2);
+    var yAgua = 240 - alturaAgua;
+    $('#agua-fill').attr({ y: yAgua, height: alturaAgua });
+    $('#nivel-line').attr({ y1: yAgua, y2: yAgua });
+    $('#wave-path').attr('d',
+      'M0 '    + yAgua +
+      ' Q25 '  + (yAgua-7)  + ' 50 '  + yAgua +
+      ' Q75 '  + (yAgua+7)  + ' 100 ' + yAgua +
+      ' Q125 ' + (yAgua-7)  + ' 150 ' + yAgua +
+      ' Q175 ' + (yAgua+7)  + ' 200 ' + yAgua +
+      ' Q225 ' + (yAgua-7)  + ' 250 ' + yAgua +
+      ' Q275 ' + (yAgua+7)  + ' 300 ' + yAgua +
+      ' L300 260 L0 260 Z'
+    );
+  }
+
+  function actualizarAlerta(pct, estado) {
+    var map = {
+      critico: ['critico', '🚨 Nivel CRÍTICO: ' + pct + '% — Acción inmediata'],
+      bajo:    ['warn',    '⚠️ Nivel BAJO: '    + pct + '% — Rellena pronto'],
+      normal:  ['ok',      '✅ Nivel NORMAL: '  + pct + '% — Sin problema']
+    };
+    var e = map[estado] || ['ok', '✅ ' + pct + '%'];
+    mostrarAlerta(e[0], e[1]);
+  }
+
+  // Resumen desde MariaDB (persistente)
+  function actualizarResumenDB(r, pct, ts) {
+    var hora = ts ? ts.split(' ')[1] : '—';
+    $('#res-total').text(r.total);
+    $('#res-prom').text(r.promedio + '%');
+    $('#res-max').text(r.maximo + '%');
+    $('#res-min').text(r.minimo + '%');
+    $('#res-ultima').text(pct + '%  ·  ' + hora);
+  }
+
+  // Resumen local (fallback si BD no responde)
+  function actualizarResumen(pct) {
+    var now = new Date();
+    var t   = [now.getHours(), now.getMinutes(), now.getSeconds()]
+              .map(function(n){ return String(n).padStart(2,'0'); }).join(':');
+
+    resumen.total++;
+    resumen.suma += pct;
+    resumen.max   = resumen.max === null ? pct : Math.max(resumen.max, pct);
+    resumen.min   = resumen.min === null ? pct : Math.min(resumen.min, pct);
+    resumen.ultimaHora = t;
+
+    var prom = Math.round(resumen.suma / resumen.total);
+
+    $('#res-total').text(resumen.total);
+    $('#res-prom').text(prom + '%');
+    $('#res-max').text(resumen.max + '%');
+    $('#res-min').text(resumen.min + '%');
+    $('#res-ultima').text(pct + '%  ·  ' + t);
+  }
+
+  function agregarHistorial(raw, pct) {
+    var now = new Date();
+    var t = [now.getHours(), now.getMinutes(), now.getSeconds()]
+            .map(function(n){ return String(n).padStart(2,'0'); }).join(':');
+    historial.unshift({ time: t, raw: raw, pct: pct });
+    if (historial.length > 8) historial.pop();
+    var $ul = $('#historial').empty();
+    $.each(historial, function(_, item) {
+      $ul.append(
+        '<li>' +
+          '<span>' + item.raw + '</span>' +
+          '<span class="val">' + item.pct + '%</span>' +
+          '<span class="time">' + item.time + '</span>' +
+        '</li>'
+      );
+    });
+  }
+
+  function mostrarAlerta(tipo, msg) {
+    $('#alerta').removeClass().addClass('alerta show ' + tipo).text(msg);
+  }
+  function ocultarAlerta() { $('#alerta').removeClass('show'); }
 </script>
 
 </body>

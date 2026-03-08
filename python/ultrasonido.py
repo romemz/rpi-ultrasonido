@@ -1,5 +1,18 @@
-import RPi.GPIO as GPIO
 import time
+import random
+import sys
+
+try:
+    import RPi.GPIO as GPIO
+    ON_RPI = True
+except (ImportError, RuntimeError):
+    ON_RPI = False
+
+if not ON_RPI:
+    # Entorno de desarrollo: simular una medición entre 5 y 95 cm
+    distancia = round(random.uniform(5.0, 95.0), 2)
+    print(distancia)
+    sys.exit(0)
 
 GPIO.setmode(GPIO.BCM)
 
