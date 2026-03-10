@@ -24,8 +24,7 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html { font-size: 16px; }
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
 
     body {
       background: var(--fondo);
@@ -44,40 +43,79 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 24px;
+      padding: 10px 20px;
       background: var(--panel);
       border-bottom: 1px solid var(--borde);
       position: sticky;
       top: 0;
       z-index: 100;
+      gap: 8px;
     }
-    .logo-area { display: flex; align-items: center; gap: 10px; }
+    .logo-area { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
     .logo-circle {
-      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
       background: linear-gradient(135deg, var(--azul), var(--cyan));
       display: flex; align-items: center; justify-content: center;
       font-family: 'Rajdhani', sans-serif; font-weight: 700;
-      font-size: 14px; color: #fff;
+      font-size: 13px; color: #fff;
     }
+    .logo-text { min-width: 0; }
     .logo-text h1 {
       font-family: 'Rajdhani', sans-serif;
-      font-size: clamp(13px, 3vw, 17px);
+      font-size: clamp(12px, 3.5vw, 17px);
       font-weight: 700; color: #fff; letter-spacing: 1px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .logo-text p { font-size: clamp(9px, 2vw, 11px); color: #7aadcc; }
+    .logo-text p { font-size: clamp(9px, 2vw, 11px); color: #7aadcc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .status-bar { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #7aadcc; }
-    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    /* ── HEADER DERECHO ── */
+    .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+    .chip-auto {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(46,213,115,.1);
+      border: 1px solid rgba(46,213,115,.25);
+      border-radius: 20px; padding: 4px 10px;
+      font-size: 10px; color: var(--ok);
+      white-space: nowrap;
+    }
+    .chip-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--ok); animation: blink 1.5s infinite; flex-shrink: 0;
+    }
+
+    .btn-notif {
+      background: rgba(0,212,255,.1);
+      border: 1px solid rgba(0,212,255,.25);
+      border-radius: 8px; color: var(--cyan);
+      font-size: 17px; width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background .2s;
+      flex-shrink: 0; position: relative;
+    }
+    .btn-notif:hover { background: rgba(0,212,255,.2); }
+    .notif-badge {
+      position: absolute; top: -4px; right: -4px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--critico); font-size: 9px;
+      display: none; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700;
+    }
+    .notif-badge.show { display: flex; }
+
+    .status-bar { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #7aadcc; white-space: nowrap; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: blink 2s infinite; flex-shrink: 0; }
+    .dot.warn { background: var(--warn); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
     /* ── LAYOUT ── */
     main {
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 20px;
-      padding: 24px 28px;
-      max-width: 1100px;
+      grid-template-columns: 1fr 300px;
+      gap: 18px;
+      padding: 20px 24px;
+      max-width: 1060px;
       width: 100%;
       margin: 0 auto;
     }
@@ -87,18 +125,18 @@
       background: var(--panel);
       border: 1px solid var(--borde);
       border-radius: 16px;
-      padding: 20px;
+      padding: 18px;
     }
     .card-title {
       font-family: 'Rajdhani', sans-serif;
-      font-size: 12px; font-weight: 600;
+      font-size: 11px; font-weight: 600;
       letter-spacing: 2px; text-transform: uppercase;
-      color: var(--cyan); margin-bottom: 16px;
+      color: var(--cyan); margin-bottom: 14px;
     }
 
     /* ── TINACO ── */
-    .tinaco-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-    .tinaco-svg-area { width: clamp(140px, 40vw, 200px); }
+    .tinaco-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .tinaco-svg-area { width: clamp(130px, 35vw, 190px); }
     .tinaco-svg-area svg { width: 100%; }
     #agua-fill { transition: height 1.2s ease, y 1.2s ease; }
     .wave { animation: waveMove 3s linear infinite; }
@@ -108,22 +146,22 @@
     .pct-display { text-align: center; }
     .pct-display .num {
       font-family: 'Rajdhani', sans-serif;
-      font-size: clamp(48px, 12vw, 72px);
+      font-size: clamp(44px, 11vw, 70px);
       font-weight: 700; line-height: 1;
       background: linear-gradient(135deg, var(--cyan), var(--azul));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
-    .pct-display .lbl { font-size: 12px; color: #7aadcc; margin-top: 2px; }
+    .pct-display .lbl { font-size: 11px; color: #7aadcc; margin-top: 2px; }
 
     /* ── BADGE DISTANCIA ── */
     .dist-badge {
       display: inline-flex; align-items: center; gap: 8px;
       background: rgba(0,212,255,.08);
       border: 1px solid rgba(0,212,255,.2);
-      border-radius: 30px; padding: 7px 16px;
-      font-size: 13px; color: var(--cyan);
+      border-radius: 30px; padding: 6px 14px;
+      font-size: 12px; color: var(--cyan);
     }
-    .dist-badge .val { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; }
+    .dist-badge .val { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; }
 
     /* ── BOTÓN ── */
     .btn-medir {
@@ -131,32 +169,35 @@
       background: linear-gradient(135deg, var(--azul2), var(--azul));
       border: none; border-radius: 12px;
       color: #fff; font-family: 'Rajdhani', sans-serif;
-      font-size: clamp(15px, 4vw, 18px); font-weight: 700; letter-spacing: 1px;
+      font-size: clamp(14px, 4vw, 17px); font-weight: 700; letter-spacing: 1px;
       cursor: pointer; transition: transform .15s, box-shadow .15s;
       box-shadow: 0 4px 20px rgba(10,116,218,.4);
-      min-height: 48px;
+      min-height: 50px; touch-action: manipulation;
     }
     .btn-medir:hover   { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(10,116,218,.6); }
     .btn-medir:active  { transform: scale(.97); }
     .btn-medir:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
+    .auto-info { margin-top: 8px; font-size: 11px; color: #456; text-align: center; }
+    .auto-info span { color: var(--cyan); font-weight: 600; }
+
     /* ── LOADER ── */
-    .loader-wrap { display: none; flex-direction: column; align-items: center; gap: 10px; padding: 14px 0; }
+    .loader-wrap { display: none; flex-direction: column; align-items: center; gap: 10px; padding: 12px 0; }
     .loader-wrap.show { display: flex; }
     .spinner {
-      width: 32px; height: 32px; border-radius: 50%;
+      width: 30px; height: 30px; border-radius: 50%;
       border: 3px solid var(--borde); border-top-color: var(--cyan);
       animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .loader-wrap p { font-size: 12px; color: #7aadcc; }
+    .loader-wrap p { font-size: 11px; color: #7aadcc; }
 
     /* ── ALERTA ── */
     .alerta {
       display: none; margin-top: 10px;
       border-radius: 10px; padding: 10px 14px;
       font-size: 13px; font-weight: 600;
-      border: 1px solid transparent;
+      border: 1px solid transparent; line-height: 1.4;
     }
     .alerta.show    { display: block; }
     .alerta.critico { background: rgba(255,71,87,.12);  border-color: var(--critico); color: var(--critico); }
@@ -165,66 +206,106 @@
     .alerta.error   { background: rgba(255,71,87,.12);  border-color: var(--critico); color: var(--critico); }
 
     /* ── PANEL DERECHO ── */
-    .right-col { display: flex; flex-direction: column; gap: 16px; }
+    .right-col { display: flex; flex-direction: column; gap: 14px; }
 
-    .historial-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .historial-list { list-style: none; display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
+    .historial-list::-webkit-scrollbar { width: 4px; }
+    .historial-list::-webkit-scrollbar-thumb { background: var(--borde); border-radius: 4px; }
     .historial-list li {
       display: flex; justify-content: space-between; align-items: center;
       background: rgba(255,255,255,.03); border-radius: 8px; padding: 7px 10px;
       font-size: 12px; border-left: 3px solid var(--azul);
     }
     .historial-list li .time { color: #7aadcc; font-size: 10px; }
-    .historial-list li .val  { font-family: 'Rajdhani', sans-serif; font-size: 15px; color: var(--cyan); }
-    .empty-hist { font-size: 12px; color: #456; text-align: center; padding: 14px 0; }
+    .historial-list li .val  { font-family: 'Rajdhani', sans-serif; font-size: 14px; color: var(--cyan); }
+    .empty-hist { font-size: 12px; color: #456; text-align: center; padding: 14px 0; border: none !important; }
 
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
     .info-item {
       background: rgba(255,255,255,.03); border-radius: 10px;
       padding: 10px; border: 1px solid var(--borde);
     }
     .info-item .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #7aadcc; margin-bottom: 3px; }
-    .info-item .val { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: #fff; }
+    .info-item .val { font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 700; color: #fff; }
 
-    .nivel-ref { display: flex; flex-direction: column; gap: 7px; font-size: 12px; }
+    .nivel-ref { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
     .nivel-ref div { display: flex; align-items: center; gap: 7px; }
     .nivel-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; top: 66px; right: 14px;
+      max-width: 310px; width: calc(100vw - 28px);
+      background: var(--panel);
+      border: 1px solid var(--borde);
+      border-radius: 14px; padding: 14px 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.6);
+      z-index: 999; display: none;
+    }
+    #toast.show { display: block; animation: slideIn .3s ease; }
+    #toast.critico { border-color: var(--critico); }
+    #toast.warn    { border-color: var(--warn); }
+    #toast.ok      { border-color: var(--ok); }
+    @keyframes slideIn { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
+    .toast-close { position: absolute; top: 8px; right: 10px; background: none; border: none; color: #456; font-size: 18px; cursor: pointer; }
+    .toast-icon  { font-size: 20px; margin-bottom: 3px; }
+    .toast-titulo{ font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+    .toast-msg   { font-size: 12px; color: #7aadcc; line-height: 1.4; }
+
     /* ── FOOTER ── */
     footer {
-      text-align: center; padding: 12px;
+      text-align: center; padding: 10px;
       font-size: 10px; color: #2a4a66;
       border-top: 1px solid var(--borde);
     }
 
-    /* ── RESPONSIVE TABLET ≤ 900px ── */
+    /* ════════════════════════════════
+       RESPONSIVE TABLET ≤ 900px
+    ════════════════════════════════ */
     @media (max-width: 900px) {
-      main { grid-template-columns: 1fr; padding: 16px; gap: 16px; }
-      .right-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      main { grid-template-columns: 1fr; padding: 14px; gap: 14px; }
+      .right-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     }
 
-    /* ── RESPONSIVE MÓVIL ≤ 600px ── */
+    /* ════════════════════════════════
+       RESPONSIVE MÓVIL ≤ 600px
+    ════════════════════════════════ */
     @media (max-width: 600px) {
-      header { padding: 10px 14px; }
-      .logo-circle { width: 34px; height: 34px; font-size: 12px; }
+      header { padding: 8px 12px; }
+      .logo-circle { width: 32px; height: 32px; font-size: 11px; }
       .logo-text p { display: none; }
-      main { padding: 12px; gap: 12px; }
-      .card { padding: 16px; border-radius: 12px; }
-      .right-col { display: flex; flex-direction: column; gap: 12px; }
-      .tinaco-wrap { gap: 12px; }
-      .tinaco-svg-area { width: clamp(120px, 50vw, 160px); }
-      .historial-list li { font-size: 11px; }
-      .info-grid { grid-template-columns: repeat(3, 1fr); }
-      footer { font-size: 9px; padding: 10px; }
+      .chip-auto .chip-txt { display: none; }
+      main { padding: 10px; gap: 10px; }
+      .card { padding: 14px; border-radius: 12px; }
+      .right-col { display: flex; flex-direction: column; gap: 10px; }
+      .tinaco-wrap { flex-direction: row; justify-content: center; gap: 20px; align-items: center; }
+      .tinaco-svg-area { width: clamp(100px, 38vw, 140px); }
+      .pct-display .num { font-size: clamp(36px, 13vw, 54px); }
+      .historial-list { max-height: 190px; }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+      footer { font-size: 9px; padding: 8px; }
+      #toast { top: 58px; }
     }
 
-    /* ── RESPONSIVE MÓVIL PEQUEÑO ≤ 380px ── */
+    /* ════════════════════════════════
+      RESPONSIVE MÓVIL PEQUEÑO ≤ 380px
+    ════════════════════════════════ */
     @media (max-width: 380px) {
-      .info-grid { grid-template-columns: 1fr 1fr; }
-      .btn-medir { font-size: 14px; padding: 12px; }
+      .btn-medir { font-size: 13px; padding: 12px; }
+      .tinaco-wrap { flex-direction: column; }
+      .tinaco-svg-area { width: clamp(110px, 55vw, 150px); }
     }
   </style>
 </head>
 <body>
+
+<!-- ══════════ TOAST ══════════ -->
+<div id="toast">
+  <button class="toast-close" onclick="cerrarToast()">✕</button>
+  <div class="toast-icon"   id="toast-icon">🔔</div>
+  <div class="toast-titulo" id="toast-titulo">Alerta</div>
+  <div class="toast-msg"    id="toast-msg"></div>
+</div>
 
 <!-- ══════════ HEADER ══════════ -->
 <header>
@@ -235,9 +316,19 @@
       <p>Niveles en Tinacos · Universidad Tecnológica de Coahuila</p>
     </div>
   </div>
-  <div class="status-bar">
-    <div class="dot"></div>
-    <span>Activo</span>
+  <div class="header-right">
+    <div class="chip-auto">
+      <span class="chip-dot"></span>
+      <span class="chip-txt">Auto <b id="chip-min">5</b>min</span>
+    </div>
+    <button class="btn-notif" id="btn-notif" title="Activar notificaciones" onclick="pedirPermiso()">
+      🔔
+      <span class="notif-badge" id="notif-badge">!</span>
+    </button>
+    <div class="status-bar">
+      <div class="dot" id="dot-estado"></div>
+      <span id="txt-estado">Activo</span>
+    </div>
   </div>
 </header>
 
@@ -259,7 +350,7 @@
                 <rect x="20" y="40" width="160" height="200" rx="8"/>
               </clipPath>
               <linearGradient id="grad-agua" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.9"/>
+                <stop offset="0%"   stop-color="#00d4ff" stop-opacity="0.9"/>
                 <stop offset="100%" stop-color="#0550a0" stop-opacity="1"/>
               </linearGradient>
             </defs>
@@ -303,10 +394,13 @@
       </div>
     </div>
 
-    <!-- Tarjeta botón -->
+    <!-- Tarjeta control -->
     <div class="card">
       <div class="card-title">⚡ Control de medición</div>
-      <button class="btn-medir" id="btn-medir">MEDIR AHORA</button>
+      <button class="btn-medir" id="btn-medir">📡 MEDIR AHORA</button>
+      <div class="auto-info">
+        Próxima medición automática en <span id="countdown">—</span>
+      </div>
       <div class="loader-wrap" id="load-midiendo">
         <div class="spinner"></div>
         <p>Midiendo con sensor ultrasónico…</p>
@@ -360,157 +454,308 @@
 
 <!-- ══════════ SCRIPT ══════════ -->
 <script>
-  // ── Ajusta al alto real de tu tinaco en cm ──
-  var TINACO_ALTO_CM = 100;
+// ══════════════════════════════════════════════════════════
+//  CONFIGURACIÓN
+// ══════════════════════════════════════════════════════════
+var CFG = {
+  intervaloAuto:   5 * 60,   // segundos entre mediciones automáticas
+  intervaloEstado: 60,       // segundos para consultar estado_tinaco.json
+  maxHistorial:    8
+};
 
-  var historial  = [];
-  var resumen    = { total: 0, suma: 0, max: null, min: null, ultimaHora: null };
+// ══════════════════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ══════════════════════════════════════════════════════════
+var historial         = [];
+var resumen           = { total: 0, suma: 0, max: null, min: null };
+var countdownSecs     = CFG.intervaloAuto;
+var ultimoTsNotif     = null;
+var notifPermiso      = false;
+var toastTimer        = null;
 
-  $('#btn-medir').click(function () {
-    var $btn = $(this);
-    $btn.prop('disabled', true);
+// ══════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════
+$(function () {
+  verificarPermisosNotif();
+  iniciarCountdown();
+  iniciarAutoMedicion();
+  consultarEstado();
+  setInterval(consultarEstado, CFG.intervaloEstado * 1000);
+});
+
+// ══════════════════════════════════════════════════════════
+//  NOTIFICACIONES PUSH
+// ══════════════════════════════════════════════════════════
+function verificarPermisosNotif() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    notifPermiso = true;
+    $('#btn-notif').css('opacity','1').attr('title','Notificaciones activas ✓');
+  }
+}
+
+function pedirPermiso() {
+  if (!('Notification' in window)) {
+    mostrarToast('warn','⚠️','Sin soporte','Este navegador no admite notificaciones push.');
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    notifPermiso = true;
+    mostrarToast('ok','✅','Ya activas','Las notificaciones ya están activadas.');
+    return;
+  }
+  Notification.requestPermission().then(function(p) {
+    if (p === 'granted') {
+      notifPermiso = true;
+      $('#btn-notif').css('opacity','1');
+      mostrarToast('ok','✅','Listo','Recibirás alertas cuando el nivel sea bajo o crítico.');
+    } else {
+      mostrarToast('warn','⚠️','Bloqueadas','Actívalas desde el candado en la barra de tu navegador.');
+    }
+  });
+}
+
+function enviarPush(tipo, titulo, cuerpo) {
+  if (!notifPermiso || Notification.permission !== 'granted') return;
+  try {
+    var n = new Notification('💧 Tinaco UTC — ' + titulo, {
+      body: cuerpo,
+      requireInteraction: (tipo === 'critico')
+    });
+    n.onclick = function(){ window.focus(); n.close(); };
+  } catch(e){}
+}
+
+// ══════════════════════════════════════════════════════════
+//  TOAST EN PANTALLA
+// ══════════════════════════════════════════════════════════
+function mostrarToast(tipo, icono, titulo, msg) {
+  $('#toast-icon').text(icono);
+  $('#toast-titulo').text(titulo);
+  $('#toast-msg').text(msg);
+  $('#toast').removeClass('critico warn ok error').addClass(tipo + ' show');
+  $('#notif-badge').addClass('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  if (tipo !== 'critico') toastTimer = setTimeout(cerrarToast, 8000);
+}
+function cerrarToast() {
+  $('#toast').removeClass('show');
+  $('#notif-badge').removeClass('show');
+}
+
+// ══════════════════════════════════════════════════════════
+//  CONSULTAR ESTADO AUTOMÁTICO (estado.php → estado_tinaco.json)
+// ══════════════════════════════════════════════════════════
+function consultarEstado() {
+  $.ajax({
+    url: 'php/estado.php', type: 'GET', dataType: 'json',
+    success: function(d) {
+      if (!d || !d.ok) return;
+      if (d.porcentaje !== null && d.porcentaje !== undefined) {
+        actualizarTinaco(d.porcentaje);
+        colorearPorcentaje(d.estado);
+      }
+      if (d.notificar && d.mensaje && d.timestamp !== ultimoTsNotif) {
+        ultimoTsNotif = d.timestamp;
+        var tipo  = d.estado === 'critico' ? 'critico' : 'warn';
+        var icono = d.estado === 'critico' ? '🚨' : '⚠️';
+        var tit   = d.estado === 'critico' ? '¡Nivel crítico!' : 'Nivel bajo';
+        mostrarToast(tipo, icono, tit, d.mensaje);
+        enviarPush(tipo, tit, d.mensaje);
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+//  COUNTDOWN Y AUTO-MEDICIÓN
+// ══════════════════════════════════════════════════════════
+function iniciarCountdown() {
+  countdownSecs = CFG.intervaloAuto;
+  setInterval(function() {
+    countdownSecs = Math.max(0, countdownSecs - 1);
+    var m = Math.floor(countdownSecs / 60);
+    var s = countdownSecs % 60;
+    $('#countdown').text(m + ':' + String(s).padStart(2,'0'));
+    if (countdownSecs === 0) countdownSecs = CFG.intervaloAuto;
+  }, 1000);
+}
+
+function iniciarAutoMedicion() {
+  setInterval(function() {
+    if (!$('#btn-medir').prop('disabled')) {
+      ejecutarMedicion(true);
+    }
+  }, CFG.intervaloAuto * 1000);
+}
+
+// ══════════════════════════════════════════════════════════
+//  BOTÓN MEDIR
+// ══════════════════════════════════════════════════════════
+$('#btn-medir').click(function() {
+  ejecutarMedicion(false);
+  countdownSecs = CFG.intervaloAuto;
+});
+
+function ejecutarMedicion(esAuto) {
+  var $btn = $('#btn-medir');
+  $btn.prop('disabled', true);
+
+  if (!esAuto) {
     $('#load-midiendo').addClass('show');
     ocultarAlerta();
     $('#dist-val').text('—');
+    $('#dot-estado').addClass('warn');
+    $('#txt-estado').text('Midiendo…');
+  }
 
-    $.ajax({
-      url: 'php/medir.php',
-      type: 'POST',
-
-      success: function (resp) {
-        // Parseo tolerante: funciona aunque haya texto extra alrededor del JSON
-        var data = null;
-        try {
-          data = (typeof resp === 'object') ? resp : JSON.parse(resp);
-        } catch (e) {
-          var match = String(resp).match(/\{[\s\S]*\}/);
-          if (match) {
-            try { data = JSON.parse(match[0]); } catch (e2) { data = null; }
-          }
-        }
-
-        if (data && data.ok) {
-          procesarRespuesta(data);
-        } else if (data && !data.ok) {
-          mostrarAlerta('error', '⚠️ ' + (data.error || 'Error desconocido'));
-          $('#dist-val').text(data.error || 'Error');
-        } else {
-          mostrarAlerta('error', '⚠️ Respuesta inesperada del servidor');
-          $('#dist-val').text('Error de formato');
-        }
-      },
-
-      error: function (xhr) {
-        var msg = xhr.responseText || 'Error de comunicación con el servidor';
-        mostrarAlerta('error', '⚠️ ' + msg);
-        $('#dist-val').text(msg);
-      },
-
-      complete: function () {
-        $btn.prop('disabled', false);
+  $.ajax({
+    url: 'php/medir.php', type: 'POST',
+    success: function(resp) {
+      var data = null;
+      try { data = (typeof resp === 'object') ? resp : JSON.parse(resp); }
+      catch(e) {
+        var m = String(resp).match(/\{[\s\S]*\}/);
+        if (m) { try{ data = JSON.parse(m[0]); }catch(e2){} }
+      }
+      if (data && data.ok) procesarRespuesta(data, esAuto);
+      else if (!esAuto) mostrarAlerta('error','⚠️ ' + ((data && data.error) || 'Error desconocido'));
+    },
+    error: function(xhr) {
+      if (!esAuto) mostrarAlerta('error','⚠️ ' + (xhr.responseText || 'Error de comunicación'));
+    },
+    complete: function() {
+      $btn.prop('disabled', false);
+      if (!esAuto) {
         $('#load-midiendo').removeClass('show');
+        $('#dot-estado').removeClass('warn');
+        $('#txt-estado').text('Activo');
       }
-    });
-  });
-
-  function procesarRespuesta(data) {
-    $('#dist-val').text(data.texto);
-    if (data.distancia !== null) {
-      actualizarTinaco(data.porcentaje);
-      actualizarAlerta(data.porcentaje, data.estado);
-      agregarHistorial(data.texto, data.porcentaje);
-      // Resumen viene de MariaDB si está disponible
-      if (data.resumen && data.resumen.total > 0) {
-        actualizarResumenDB(data.resumen, data.porcentaje, data.timestamp);
-      } else {
-        actualizarResumen(data.porcentaje);
-      }
-    } else {
-      mostrarAlerta('error', '⚠️ ' + data.texto);
     }
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+//  PROCESAR RESPUESTA
+// ══════════════════════════════════════════════════════════
+function procesarRespuesta(data, esAuto) {
+  if (data.fuera) {
+    if (!esAuto) {
+      $('#dist-val').text('Sin señal');
+      mostrarAlerta('warn','📡 Sensor sin obstáculo — Verifica posición dentro del tinaco.');
+    }
+    return;
   }
 
-  function actualizarTinaco(pct) {
-    $('#pct-num').text(pct + '%');
-    var alturaAgua = Math.round(pct * 2);
-    var yAgua = 240 - alturaAgua;
-    $('#agua-fill').attr({ y: yAgua, height: alturaAgua });
-    $('#nivel-line').attr({ y1: yAgua, y2: yAgua });
-    $('#wave-path').attr('d',
-      'M0 '    + yAgua +
-      ' Q25 '  + (yAgua-7)  + ' 50 '  + yAgua +
-      ' Q75 '  + (yAgua+7)  + ' 100 ' + yAgua +
-      ' Q125 ' + (yAgua-7)  + ' 150 ' + yAgua +
-      ' Q175 ' + (yAgua+7)  + ' 200 ' + yAgua +
-      ' Q225 ' + (yAgua-7)  + ' 250 ' + yAgua +
-      ' Q275 ' + (yAgua+7)  + ' 300 ' + yAgua +
-      ' L300 260 L0 260 Z'
+  var pct    = data.porcentaje;
+  var estado = data.estado;
+  var dist   = data.distancia;
+
+  actualizarTinaco(pct);
+  colorearPorcentaje(estado);
+
+  if (!esAuto) {
+    $('#dist-val').text(dist + ' cm');
+    mostrarAlertaEnCard(pct, estado);
+  }
+
+  agregarHistorial(dist, pct, estado, data.hora || '');
+  actualizarResumen(pct, data.hora || '');
+
+  // Notificaciones también al medir manualmente
+  if (estado === 'critico') {
+    mostrarToast('critico','🚨','¡Nivel crítico!','Tinaco al ' + pct + '% — Rellena de inmediato.');
+    enviarPush('critico','¡Nivel crítico!','Tinaco al ' + pct + '% — Acción inmediata.');
+  } else if (estado === 'bajo') {
+    mostrarToast('warn','⚠️','Nivel bajo','Tinaco al ' + pct + '% — Considera rellenarlo pronto.');
+    enviarPush('bajo','Nivel bajo','Tinaco al ' + pct + '% — Considera rellenarlo.');
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  UI
+// ══════════════════════════════════════════════════════════
+function actualizarTinaco(pct) {
+  $('#pct-num').text(pct + '%');
+  var h    = Math.round(pct * 2);
+  var yAgua = 240 - h;
+  $('#agua-fill').attr({ y: yAgua, height: h });
+  $('#nivel-line').attr({ y1: yAgua, y2: yAgua });
+  $('#wave-path').attr('d',
+    'M0 '    + yAgua + ' Q25 '  + (yAgua-7) + ' 50 '  + yAgua +
+    ' Q75 '  + (yAgua+7) + ' 100 ' + yAgua +
+    ' Q125 ' + (yAgua-7) + ' 150 ' + yAgua +
+    ' Q175 ' + (yAgua+7) + ' 200 ' + yAgua +
+    ' Q225 ' + (yAgua-7) + ' 250 ' + yAgua +
+    ' Q275 ' + (yAgua+7) + ' 300 ' + yAgua +
+    ' L300 260 L0 260 Z'
+  );
+}
+
+function colorearPorcentaje(estado) {
+  if (estado === 'critico') {
+    $('#pct-num').css({'background':'none','-webkit-background-clip':'unset','-webkit-text-fill-color':'var(--critico)'});
+  } else if (estado === 'bajo') {
+    $('#pct-num').css({'background':'none','-webkit-background-clip':'unset','-webkit-text-fill-color':'var(--warn)'});
+  } else {
+    $('#pct-num').css({'background':'linear-gradient(135deg, var(--cyan), var(--azul))','-webkit-background-clip':'text','-webkit-text-fill-color':'transparent'});
+  }
+}
+
+function mostrarAlertaEnCard(pct, estado) {
+  var map = {
+    critico: ['critico','🚨 Nivel CRÍTICO: ' + pct + '% — Acción inmediata'],
+    bajo:    ['warn',   '⚠️ Nivel BAJO: '    + pct + '% — Rellena pronto'],
+    normal:  ['ok',     '✅ Nivel NORMAL: '  + pct + '% — Sin problema']
+  };
+  var e = map[estado] || ['ok','✅ ' + pct + '%'];
+  mostrarAlerta(e[0], e[1]);
+}
+
+function actualizarResumen(pct, hora) {
+  if (!hora) {
+    var now = new Date();
+    hora = [now.getHours(), now.getMinutes(), now.getSeconds()]
+          .map(function(n){ return String(n).padStart(2,'0'); }).join(':');
+  }
+  resumen.total++;
+  resumen.suma += pct;
+  resumen.max   = resumen.max === null ? pct : Math.max(resumen.max, pct);
+  resumen.min   = resumen.min === null ? pct : Math.min(resumen.min, pct);
+  var prom = Math.round(resumen.suma / resumen.total);
+  $('#res-total').text(resumen.total);
+  $('#res-prom').text(prom + '%');
+  $('#res-max').text(resumen.max + '%');
+  $('#res-min').text(resumen.min + '%');
+  $('#res-ultima').text(pct + '%  ·  ' + hora);
+}
+
+function agregarHistorial(dist, pct, estado, hora) {
+  if (!hora) {
+    var now = new Date();
+    hora = [now.getHours(), now.getMinutes(), now.getSeconds()]
+          .map(function(n){ return String(n).padStart(2,'0'); }).join(':');
+  }
+  var color = estado === 'critico' ? 'var(--critico)'
+            : estado === 'bajo'    ? 'var(--warn)'
+            : 'var(--azul)';
+  historial.unshift({ hora: hora, dist: dist, pct: pct, color: color });
+  if (historial.length > CFG.maxHistorial) historial.pop();
+  var $ul = $('#historial').empty();
+  $.each(historial, function(_, item) {
+    $ul.append(
+      '<li style="border-left-color:' + item.color + '">' +
+        '<span>' + item.dist + ' cm</span>' +
+        '<span class="val">' + item.pct + '%</span>' +
+        '<span class="time">' + item.hora + '</span>' +
+      '</li>'
     );
-  }
+  });
+}
 
-  function actualizarAlerta(pct, estado) {
-    var map = {
-      critico: ['critico', '🚨 Nivel CRÍTICO: ' + pct + '% — Acción inmediata'],
-      bajo:    ['warn',    '⚠️ Nivel BAJO: '    + pct + '% — Rellena pronto'],
-      normal:  ['ok',      '✅ Nivel NORMAL: '  + pct + '% — Sin problema']
-    };
-    var e = map[estado] || ['ok', '✅ ' + pct + '%'];
-    mostrarAlerta(e[0], e[1]);
-  }
-
-  // Resumen desde MariaDB (persistente)
-  function actualizarResumenDB(r, pct, ts) {
-    var hora = ts ? ts.split(' ')[1] : '—';
-    $('#res-total').text(r.total);
-    $('#res-prom').text(r.promedio + '%');
-    $('#res-max').text(r.maximo + '%');
-    $('#res-min').text(r.minimo + '%');
-    $('#res-ultima').text(pct + '%  ·  ' + hora);
-  }
-
-  // Resumen local (fallback si BD no responde)
-  function actualizarResumen(pct) {
-    var now = new Date();
-    var t   = [now.getHours(), now.getMinutes(), now.getSeconds()]
-              .map(function(n){ return String(n).padStart(2,'0'); }).join(':');
-
-    resumen.total++;
-    resumen.suma += pct;
-    resumen.max   = resumen.max === null ? pct : Math.max(resumen.max, pct);
-    resumen.min   = resumen.min === null ? pct : Math.min(resumen.min, pct);
-    resumen.ultimaHora = t;
-
-    var prom = Math.round(resumen.suma / resumen.total);
-
-    $('#res-total').text(resumen.total);
-    $('#res-prom').text(prom + '%');
-    $('#res-max').text(resumen.max + '%');
-    $('#res-min').text(resumen.min + '%');
-    $('#res-ultima').text(pct + '%  ·  ' + t);
-  }
-
-  function agregarHistorial(raw, pct) {
-    var now = new Date();
-    var t = [now.getHours(), now.getMinutes(), now.getSeconds()]
-            .map(function(n){ return String(n).padStart(2,'0'); }).join(':');
-    historial.unshift({ time: t, raw: raw, pct: pct });
-    if (historial.length > 8) historial.pop();
-    var $ul = $('#historial').empty();
-    $.each(historial, function(_, item) {
-      $ul.append(
-        '<li>' +
-          '<span>' + item.raw + '</span>' +
-          '<span class="val">' + item.pct + '%</span>' +
-          '<span class="time">' + item.time + '</span>' +
-        '</li>'
-      );
-    });
-  }
-
-  function mostrarAlerta(tipo, msg) {
-    $('#alerta').removeClass().addClass('alerta show ' + tipo).text(msg);
-  }
-  function ocultarAlerta() { $('#alerta').removeClass('show'); }
+function mostrarAlerta(tipo, msg) { $('#alerta').removeClass().addClass('alerta show ' + tipo).text(msg); }
+function ocultarAlerta()          { $('#alerta').removeClass('show'); }
 </script>
 
 </body>
