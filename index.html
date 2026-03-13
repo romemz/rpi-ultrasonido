@@ -11,16 +11,17 @@
 
   <style>
     :root {
-      --azul:   #0a74da;
-      --azul2:  #0550a0;
-      --cyan:   #00d4ff;
-      --fondo:  #060d1a;
-      --panel:  #0d1b2e;
-      --borde:  #163352;
-      --texto:  #cde7ff;
-      --critico:#ff4757;
-      --ok:     #2ed573;
-      --warn:   #ffa502;
+      --azul:      #0a74da;
+      --azul2:     #0550a0;
+      --cyan:      #00d4ff;
+      --fondo:     #060d1a;
+      --panel:     #0d1b2e;
+      --borde:     #163352;
+      --texto:     #cde7ff;
+      --critico:   #ff4757;
+      --ok:        #2ed573;
+      --warn:      #ffa502;
+      --telegram:  #229ED9;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,132 +39,87 @@
       flex-direction: column;
     }
 
-    /* ── HEADER ── */
+    /* ══════════ HEADER ══════════ */
     header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 20px; gap: 10px;
       background: var(--panel);
       border-bottom: 1px solid var(--borde);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      gap: 8px;
+      position: sticky; top: 0; z-index: 100;
     }
     .logo-area { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
     .logo-circle {
       width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
       background: linear-gradient(135deg, var(--azul), var(--cyan));
       display: flex; align-items: center; justify-content: center;
-      font-family: 'Rajdhani', sans-serif; font-weight: 700;
-      font-size: 13px; color: #fff;
+      font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 13px; color: #fff;
     }
-    .logo-text { min-width: 0; }
     .logo-text h1 {
       font-family: 'Rajdhani', sans-serif;
-      font-size: clamp(12px, 3.5vw, 17px);
-      font-weight: 700; color: #fff; letter-spacing: 1px;
+      font-size: clamp(12px, 3.2vw, 17px); font-weight: 700;
+      color: #fff; letter-spacing: 1px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .logo-text p { font-size: clamp(9px, 2vw, 11px); color: #7aadcc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .logo-text p { font-size: clamp(9px, 1.8vw, 11px); color: #7aadcc; white-space: nowrap; }
 
-    /* ── HEADER DERECHO ── */
-    .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-
+    .header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .chip-auto {
       display: flex; align-items: center; gap: 5px;
-      background: rgba(46,213,115,.1);
-      border: 1px solid rgba(46,213,115,.25);
-      border-radius: 20px; padding: 4px 10px;
-      font-size: 10px; color: var(--ok);
-      white-space: nowrap;
+      background: rgba(46,213,115,.08); border: 1px solid rgba(46,213,115,.2);
+      border-radius: 20px; padding: 4px 10px; font-size: 10px; color: var(--ok);
     }
-    .chip-dot {
-      width: 5px; height: 5px; border-radius: 50%;
-      background: var(--ok); animation: blink 1.5s infinite; flex-shrink: 0;
-    }
-
-    .btn-notif {
-      background: rgba(0,212,255,.1);
-      border: 1px solid rgba(0,212,255,.25);
-      border-radius: 8px; color: var(--cyan);
-      font-size: 17px; width: 36px; height: 36px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: background .2s;
-      flex-shrink: 0; position: relative;
-    }
-    .btn-notif:hover { background: rgba(0,212,255,.2); }
-    .notif-badge {
-      position: absolute; top: -4px; right: -4px;
-      width: 14px; height: 14px; border-radius: 50%;
-      background: var(--critico); font-size: 9px;
-      display: none; align-items: center; justify-content: center;
-      color: #fff; font-weight: 700;
-    }
-    .notif-badge.show { display: flex; }
-
-    .status-bar { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #7aadcc; white-space: nowrap; }
-    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: blink 2s infinite; flex-shrink: 0; }
-    .dot.warn { background: var(--warn); }
+    .chip-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ok); animation: blink 1.5s infinite; }
+    .status-bar { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #7aadcc; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: blink 2s infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-    /* ── LAYOUT ── */
+    /* ══════════ LAYOUT ══════════ */
     main {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 300px;
-      gap: 18px;
-      padding: 20px 24px;
-      max-width: 1060px;
-      width: 100%;
-      margin: 0 auto;
+      flex: 1; display: grid;
+      grid-template-columns: 1fr 310px;
+      gap: 18px; padding: 20px 24px;
+      max-width: 1080px; width: 100%; margin: 0 auto;
     }
+    .left-col  { display: flex; flex-direction: column; gap: 16px; }
+    .right-col { display: flex; flex-direction: column; gap: 14px; }
 
-    /* ── TARJETA ── */
+    /* ══════════ TARJETA ══════════ */
     .card {
-      background: var(--panel);
-      border: 1px solid var(--borde);
-      border-radius: 16px;
-      padding: 18px;
+      background: var(--panel); border: 1px solid var(--borde);
+      border-radius: 16px; padding: 18px;
     }
     .card-title {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 11px; font-weight: 600;
+      font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 600;
       letter-spacing: 2px; text-transform: uppercase;
       color: var(--cyan); margin-bottom: 14px;
     }
 
-    /* ── TINACO ── */
+    /* ══════════ TINACO ══════════ */
     .tinaco-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
-    .tinaco-svg-area { width: clamp(130px, 35vw, 190px); }
+    .tinaco-svg-area { width: clamp(130px, 38vw, 190px); }
     .tinaco-svg-area svg { width: 100%; }
     #agua-fill { transition: height 1.2s ease, y 1.2s ease; }
     .wave { animation: waveMove 3s linear infinite; }
     @keyframes waveMove { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
 
-    /* ── PORCENTAJE ── */
     .pct-display { text-align: center; }
     .pct-display .num {
       font-family: 'Rajdhani', sans-serif;
-      font-size: clamp(44px, 11vw, 70px);
-      font-weight: 700; line-height: 1;
+      font-size: clamp(46px, 11vw, 70px); font-weight: 700; line-height: 1;
       background: linear-gradient(135deg, var(--cyan), var(--azul));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      transition: color .4s;
     }
     .pct-display .lbl { font-size: 11px; color: #7aadcc; margin-top: 2px; }
 
-    /* ── BADGE DISTANCIA ── */
     .dist-badge {
       display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(0,212,255,.08);
-      border: 1px solid rgba(0,212,255,.2);
-      border-radius: 30px; padding: 6px 14px;
-      font-size: 12px; color: var(--cyan);
+      background: rgba(0,212,255,.08); border: 1px solid rgba(0,212,255,.2);
+      border-radius: 30px; padding: 6px 14px; font-size: 13px; color: var(--cyan);
     }
-    .dist-badge .val { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; }
+    .dist-badge .val { font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 700; }
 
-    /* ── BOTÓN ── */
+    /* ══════════ BOTÓN ══════════ */
     .btn-medir {
       width: 100%; padding: 14px;
       background: linear-gradient(135deg, var(--azul2), var(--azul));
@@ -171,8 +127,8 @@
       color: #fff; font-family: 'Rajdhani', sans-serif;
       font-size: clamp(14px, 4vw, 17px); font-weight: 700; letter-spacing: 1px;
       cursor: pointer; transition: transform .15s, box-shadow .15s;
-      box-shadow: 0 4px 20px rgba(10,116,218,.4);
-      min-height: 50px; touch-action: manipulation;
+      box-shadow: 0 4px 20px rgba(10,116,218,.4); min-height: 50px;
+      touch-action: manipulation;
     }
     .btn-medir:hover   { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(10,116,218,.6); }
     .btn-medir:active  { transform: scale(.97); }
@@ -181,7 +137,7 @@
     .auto-info { margin-top: 8px; font-size: 11px; color: #456; text-align: center; }
     .auto-info span { color: var(--cyan); font-weight: 600; }
 
-    /* ── LOADER ── */
+    /* ══════════ LOADER ══════════ */
     .loader-wrap { display: none; flex-direction: column; align-items: center; gap: 10px; padding: 12px 0; }
     .loader-wrap.show { display: flex; }
     .spinner {
@@ -189,14 +145,13 @@
       border: 3px solid var(--borde); border-top-color: var(--cyan);
       animation: spin 1s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin { to{ transform: rotate(360deg); } }
     .loader-wrap p { font-size: 11px; color: #7aadcc; }
 
-    /* ── ALERTA ── */
+    /* ══════════ ALERTA ══════════ */
     .alerta {
-      display: none; margin-top: 10px;
-      border-radius: 10px; padding: 10px 14px;
-      font-size: 13px; font-weight: 600;
+      display: none; margin-top: 10px; border-radius: 10px;
+      padding: 10px 14px; font-size: 13px; font-weight: 600;
       border: 1px solid transparent; line-height: 1.4;
     }
     .alerta.show    { display: block; }
@@ -205,21 +160,19 @@
     .alerta.warn    { background: rgba(255,165,2,.10);  border-color: var(--warn);    color: var(--warn); }
     .alerta.error   { background: rgba(255,71,87,.12);  border-color: var(--critico); color: var(--critico); }
 
-    /* ── PANEL DERECHO ── */
-    .right-col { display: flex; flex-direction: column; gap: 14px; }
-
-    .historial-list { list-style: none; display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
+    /* ══════════ HISTORIAL ══════════ */
+    .historial-list { list-style: none; display: flex; flex-direction: column; gap: 6px; max-height: 230px; overflow-y: auto; }
     .historial-list::-webkit-scrollbar { width: 4px; }
     .historial-list::-webkit-scrollbar-thumb { background: var(--borde); border-radius: 4px; }
     .historial-list li {
       display: flex; justify-content: space-between; align-items: center;
-      background: rgba(255,255,255,.03); border-radius: 8px; padding: 7px 10px;
-      font-size: 12px; border-left: 3px solid var(--azul);
+      background: rgba(255,255,255,.03); border-radius: 8px;
+      padding: 7px 10px; font-size: 12px; border-left: 3px solid var(--azul);
     }
     .historial-list li .time { color: #7aadcc; font-size: 10px; }
     .historial-list li .val  { font-family: 'Rajdhani', sans-serif; font-size: 14px; color: var(--cyan); }
-    .empty-hist { font-size: 12px; color: #456; text-align: center; padding: 14px 0; border: none !important; }
 
+    /* ══════════ INFO GRID ══════════ */
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
     .info-item {
       background: rgba(255,255,255,.03); border-radius: 10px;
@@ -228,84 +181,95 @@
     .info-item .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #7aadcc; margin-bottom: 3px; }
     .info-item .val { font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 700; color: #fff; }
 
-    .nivel-ref { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+    /* ══════════ NIVELES REF ══════════ */
+    .nivel-ref { display: flex; flex-direction: column; gap: 7px; font-size: 12px; }
     .nivel-ref div { display: flex; align-items: center; gap: 7px; }
     .nivel-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
-    /* ── TOAST ── */
-    #toast {
-      position: fixed; top: 66px; right: 14px;
-      max-width: 310px; width: calc(100vw - 28px);
-      background: var(--panel);
-      border: 1px solid var(--borde);
-      border-radius: 14px; padding: 14px 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,.6);
-      z-index: 999; display: none;
+    /* ══════════ TARJETA TELEGRAM ══════════ */
+    .tg-card {
+      background: linear-gradient(135deg, rgba(34,158,217,.12), rgba(34,158,217,.05));
+      border: 1px solid rgba(34,158,217,.35);
     }
-    #toast.show { display: block; animation: slideIn .3s ease; }
-    #toast.critico { border-color: var(--critico); }
-    #toast.warn    { border-color: var(--warn); }
-    #toast.ok      { border-color: var(--ok); }
-    @keyframes slideIn { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
-    .toast-close { position: absolute; top: 8px; right: 10px; background: none; border: none; color: #456; font-size: 18px; cursor: pointer; }
-    .toast-icon  { font-size: 20px; margin-bottom: 3px; }
-    .toast-titulo{ font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 3px; }
-    .toast-msg   { font-size: 12px; color: #7aadcc; line-height: 1.4; }
+    .tg-card .card-title { color: var(--telegram); }
 
-    /* ── FOOTER ── */
+    .tg-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .tg-icon {
+      width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+      background: var(--telegram);
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .tg-header-text h3 { font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; color: #fff; }
+    .tg-header-text p  { font-size: 10px; color: #7aadcc; margin-top: 2px; }
+
+    .tg-alertas { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    .tg-chip {
+      display: flex; align-items: center; gap: 4px;
+      border-radius: 20px; padding: 3px 9px; font-size: 10px; font-weight: 600;
+    }
+    .tg-chip.warn    { background: rgba(255,165,2,.12);  border: 1px solid rgba(255,165,2,.3);  color: var(--warn); }
+    .tg-chip.red     { background: rgba(255,71,87,.12);  border: 1px solid rgba(255,71,87,.3);  color: var(--critico); }
+    .tg-chip.danger  { background: rgba(180,0,30,.18);   border: 1px solid rgba(255,71,87,.5);  color: #ff6b7a; }
+
+    /* QR container */
+    .qr-section { text-align: center; }
+    .qr-section p { font-size: 11px; color: #7aadcc; margin-bottom: 8px; line-height: 1.5; }
+
+    .qr-box {
+      display: inline-flex; flex-direction: column; align-items: center; gap: 6px;
+      background: #fff; border-radius: 12px; padding: 10px 12px; cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 0 0 3px rgba(34,158,217,.2);
+      text-decoration: none;
+    }
+    .qr-box:hover { transform: scale(1.03); box-shadow: 0 0 0 4px rgba(34,158,217,.5); }
+    .qr-box svg   { display: block; width: 100px; height: 100px; }
+    .qr-label { font-size: 10px; color: #0550a0; font-weight: 700; letter-spacing: .5px; }
+
+    .tg-steps { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .tg-step  { display: flex; align-items: flex-start; gap: 8px; font-size: 11px; color: #7aadcc; line-height: 1.4; }
+    .tg-step-num {
+      width: 17px; height: 17px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(34,158,217,.15); border: 1px solid rgba(34,158,217,.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; color: var(--telegram);
+    }
+
+    /* ══════════ FOOTER ══════════ */
     footer {
-      text-align: center; padding: 10px;
+      text-align: center; padding: 10px 16px;
       font-size: 10px; color: #2a4a66;
       border-top: 1px solid var(--borde);
     }
 
-    /* ════════════════════════════════
-       RESPONSIVE TABLET ≤ 900px
-    ════════════════════════════════ */
+    /* ══════════ RESPONSIVE TABLET ≤ 900px ══════════ */
     @media (max-width: 900px) {
       main { grid-template-columns: 1fr; padding: 14px; gap: 14px; }
-      .right-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .right-col { display: grid; grid-template-columns: 1fr 1fr; }
+      .tg-card   { grid-column: span 2; }
     }
 
-    /* ════════════════════════════════
-       RESPONSIVE MÓVIL ≤ 600px
-    ════════════════════════════════ */
+    /* ══════════ RESPONSIVE MÓVIL ≤ 600px ══════════ */
     @media (max-width: 600px) {
       header { padding: 8px 12px; }
-      .logo-circle { width: 32px; height: 32px; font-size: 11px; }
       .logo-text p { display: none; }
-      .chip-auto .chip-txt { display: none; }
+      .chip-auto .chip-lbl { display: none; }
       main { padding: 10px; gap: 10px; }
       .card { padding: 14px; border-radius: 12px; }
       .right-col { display: flex; flex-direction: column; gap: 10px; }
-      .tinaco-wrap { flex-direction: row; justify-content: center; gap: 20px; align-items: center; }
+      .tinaco-wrap { flex-direction: row; justify-content: center; gap: 16px; align-items: center; }
       .tinaco-svg-area { width: clamp(100px, 38vw, 140px); }
-      .pct-display .num { font-size: clamp(36px, 13vw, 54px); }
-      .historial-list { max-height: 190px; }
-      .info-grid { grid-template-columns: repeat(2, 1fr); }
-      footer { font-size: 9px; padding: 8px; }
-      #toast { top: 58px; }
+      .info-grid { grid-template-columns: 1fr 1fr; }
+      .qr-box svg { width: 80px; height: 80px; }
     }
 
-    /* ════════════════════════════════
-      RESPONSIVE MÓVIL PEQUEÑO ≤ 380px
-    ════════════════════════════════ */
     @media (max-width: 380px) {
-      .btn-medir { font-size: 13px; padding: 12px; }
       .tinaco-wrap { flex-direction: column; }
-      .tinaco-svg-area { width: clamp(110px, 55vw, 150px); }
+      .btn-medir { font-size: 13px; padding: 12px; }
     }
   </style>
 </head>
 <body>
-
-<!-- ══════════ TOAST ══════════ -->
-<div id="toast">
-  <button class="toast-close" onclick="cerrarToast()">✕</button>
-  <div class="toast-icon"   id="toast-icon">🔔</div>
-  <div class="toast-titulo" id="toast-titulo">Alerta</div>
-  <div class="toast-msg"    id="toast-msg"></div>
-</div>
 
 <!-- ══════════ HEADER ══════════ -->
 <header>
@@ -319,12 +283,8 @@
   <div class="header-right">
     <div class="chip-auto">
       <span class="chip-dot"></span>
-      <span class="chip-txt">Auto <b id="chip-min">5</b>min</span>
+      <span class="chip-lbl">Auto 5min</span>
     </div>
-    <button class="btn-notif" id="btn-notif" title="Activar notificaciones" onclick="pedirPermiso()">
-      🔔
-      <span class="notif-badge" id="notif-badge">!</span>
-    </button>
     <div class="status-bar">
       <div class="dot" id="dot-estado"></div>
       <span id="txt-estado">Activo</span>
@@ -335,10 +295,10 @@
 <!-- ══════════ MAIN ══════════ -->
 <main>
 
-  <!-- ── COLUMNA PRINCIPAL ── -->
-  <div style="display:flex;flex-direction:column;gap:16px;">
+  <!-- ─── COLUMNA IZQUIERDA ─── -->
+  <div class="left-col">
 
-    <!-- Tarjeta tinaco -->
+    <!-- Tinaco -->
     <div class="card">
       <div class="card-title">📡 Nivel actual del tinaco</div>
       <div class="tinaco-wrap">
@@ -383,10 +343,9 @@
         </div>
 
         <div class="dist-badge">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
+            <path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
           </svg>
           Resultado: <span class="val" id="dist-val">—</span>
         </div>
@@ -394,13 +353,11 @@
       </div>
     </div>
 
-    <!-- Tarjeta control -->
+    <!-- Control -->
     <div class="card">
       <div class="card-title">⚡ Control de medición</div>
       <button class="btn-medir" id="btn-medir">📡 MEDIR AHORA</button>
-      <div class="auto-info">
-        Próxima medición automática en <span id="countdown">—</span>
-      </div>
+      <div class="auto-info">Próxima medición automática en <span id="countdown">—</span></div>
       <div class="loader-wrap" id="load-midiendo">
         <div class="spinner"></div>
         <p>Midiendo con sensor ultrasónico…</p>
@@ -410,16 +367,17 @@
 
   </div>
 
-  <!-- ── COLUMNA DERECHA ── -->
+  <!-- ─── COLUMNA DERECHA ─── -->
   <div class="right-col">
 
+    <!-- Resumen -->
     <div class="card">
       <div class="card-title">📊 Resumen del día</div>
       <div class="info-grid">
         <div class="info-item"><div class="lbl">Mediciones</div><div class="val" id="res-total">0</div></div>
-        <div class="info-item"><div class="lbl">Promedio</div><div class="val" id="res-prom">—</div></div>
-        <div class="info-item"><div class="lbl">Máximo</div><div class="val" id="res-max">—</div></div>
-        <div class="info-item"><div class="lbl">Mínimo</div><div class="val" id="res-min">—</div></div>
+        <div class="info-item"><div class="lbl">Promedio</div>  <div class="val" id="res-prom">—</div></div>
+        <div class="info-item"><div class="lbl">Máximo</div>    <div class="val" id="res-max">—</div></div>
+        <div class="info-item"><div class="lbl">Mínimo</div>    <div class="val" id="res-min">—</div></div>
         <div class="info-item" style="grid-column:span 2">
           <div class="lbl">Última medición</div>
           <div class="val" id="res-ultima" style="font-size:13px;color:#7aadcc">Sin mediciones aún</div>
@@ -427,19 +385,90 @@
       </div>
     </div>
 
+    <!-- Historial -->
     <div class="card" style="flex:1">
       <div class="card-title">📋 Historial de lecturas</div>
       <ul class="historial-list" id="historial">
-        <li class="empty-hist" style="border:none">Sin lecturas aún</li>
+        <li style="border:none;font-size:12px;color:#456;text-align:center;padding:14px 0">Sin lecturas aún</li>
       </ul>
     </div>
 
+    <!-- Niveles de alerta -->
     <div class="card">
       <div class="card-title">🚨 Niveles de alerta</div>
       <div class="nivel-ref">
-        <div><span class="nivel-dot" style="background:var(--critico)"></span>Crítico ≤ 25%</div>
-        <div><span class="nivel-dot" style="background:var(--warn)"></span>Precaución 26–50%</div>
+        <div><span class="nivel-dot" style="background:var(--critico)"></span>Sin agua / Crítico ≤ 25%</div>
+        <div><span class="nivel-dot" style="background:var(--warn)"></span>A la mitad 26–50%</div>
         <div><span class="nivel-dot" style="background:var(--ok)"></span>Normal &gt; 50%</div>
+      </div>
+    </div>
+
+    <!-- ══ TARJETA TELEGRAM ══ -->
+    <div class="card tg-card">
+      <div class="card-title">🔔 Notificaciones en tu celular</div>
+
+      <div class="tg-header">
+        <div class="tg-icon">✈️</div>
+        <div class="tg-header-text">
+          <h3>Bot de Telegram</h3>
+          <p>Alertas en Android e iOS sin instalar apps extras</p>
+        </div>
+      </div>
+
+      <div class="tg-alertas">
+        <span class="tg-chip warn">⚠️ 50% — A la mitad</span>
+        <span class="tg-chip red">🚨 25% — Casi vacío</span>
+        <span class="tg-chip danger">🚫 0% — Sin agua</span>
+      </div>
+
+      <div class="qr-section">
+        <p>Escanea para abrir el bot en Telegram<br>y presiona <b>START</b></p>
+        <!-- QR generado en SVG puro — apunta a t.me/TU_BOT -->
+        <!-- ⚠️  Reemplaza la URL del href y el SVG del QR con el de tu bot -->
+        <!-- Genera tu QR en: https://www.qrcode-monkey.com  -->
+        <a class="qr-box" id="tg-qr-link" href="https://t.me/TU_BOT_AQUI" target="_blank">
+          <svg viewBox="0 0 21 21" shape-rendering="crispEdges">
+            <!-- QR placeholder — reemplaza con el SVG real de tu bot -->
+            <rect width="21" height="21" fill="white"/>
+            <!-- Esquina superior izquierda -->
+            <rect x="0" y="0" width="7" height="7" fill="black"/>
+            <rect x="1" y="1" width="5" height="5" fill="white"/>
+            <rect x="2" y="2" width="3" height="3" fill="black"/>
+            <!-- Esquina superior derecha -->
+            <rect x="14" y="0" width="7" height="7" fill="black"/>
+            <rect x="15" y="1" width="5" height="5" fill="white"/>
+            <rect x="16" y="2" width="3" height="3" fill="black"/>
+            <!-- Esquina inferior izquierda -->
+            <rect x="0" y="14" width="7" height="7" fill="black"/>
+            <rect x="1" y="15" width="5" height="5" fill="white"/>
+            <rect x="2" y="16" width="3" height="3" fill="black"/>
+            <!-- Patrón central representativo -->
+            <rect x="9"  y="0" width="1" height="1" fill="black"/>
+            <rect x="10" y="1" width="2" height="1" fill="black"/>
+            <rect x="9"  y="3" width="2" height="1" fill="black"/>
+            <rect x="8"  y="5" width="1" height="2" fill="black"/>
+            <rect x="10" y="4" width="1" height="3" fill="black"/>
+            <rect x="12" y="5" width="1" height="2" fill="black"/>
+            <rect x="7"  y="8" width="2" height="1" fill="black"/>
+            <rect x="10" y="7" width="1" height="2" fill="black"/>
+            <rect x="12" y="8" width="3" height="1" fill="black"/>
+            <rect x="8"  y="10" width="3" height="1" fill="black"/>
+            <rect x="13" y="10" width="2" height="2" fill="black"/>
+            <rect x="7"  y="12" width="1" height="3" fill="black"/>
+            <rect x="9"  y="11" width="2" height="2" fill="black"/>
+            <rect x="11" y="13" width="3" height="1" fill="black"/>
+            <rect x="9"  y="14" width="1" height="3" fill="black"/>
+            <rect x="11" y="15" width="2" height="2" fill="black"/>
+            <rect x="13" y="14" width="2" height="1" fill="black"/>
+          </svg>
+          <span class="qr-label">ABRIR TELEGRAM BOT</span>
+        </a>
+      </div>
+
+      <div class="tg-steps">
+        <div class="tg-step"><span class="tg-step-num">1</span><span>Escanea el QR o busca el bot en Telegram</span></div>
+        <div class="tg-step"><span class="tg-step-num">2</span><span>Presiona <b>START</b> en el chat del bot</span></div>
+        <div class="tg-step"><span class="tg-step-num">3</span><span>Listo — recibirás alertas al 50%, 25% y 0%</span></div>
       </div>
     </div>
 
@@ -459,25 +488,19 @@
 // ══════════════════════════════════════════════════════════
 var CFG = {
   intervaloAuto:   5 * 60,   // segundos entre mediciones automáticas
-  intervaloEstado: 60,       // segundos para consultar estado_tinaco.json
+  intervaloEstado: 60,       // segundos para consultar estado.php
   maxHistorial:    8
 };
 
-// ══════════════════════════════════════════════════════════
-//  ESTADO GLOBAL
-// ══════════════════════════════════════════════════════════
-var historial         = [];
-var resumen           = { total: 0, suma: 0, max: null, min: null };
-var countdownSecs     = CFG.intervaloAuto;
-var ultimoTsNotif     = null;
-var notifPermiso      = false;
-var toastTimer        = null;
+var historial     = [];
+var resumen       = { total:0, suma:0, max:null, min:null };
+var countdownSecs = CFG.intervaloAuto;
+var ultimoTs      = null;
 
 // ══════════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════════
-$(function () {
-  verificarPermisosNotif();
+$(function(){
   iniciarCountdown();
   iniciarAutoMedicion();
   consultarEstado();
@@ -485,151 +508,82 @@ $(function () {
 });
 
 // ══════════════════════════════════════════════════════════
-//  NOTIFICACIONES PUSH
+//  COUNTDOWN
 // ══════════════════════════════════════════════════════════
-function verificarPermisosNotif() {
-  if (!('Notification' in window)) return;
-  if (Notification.permission === 'granted') {
-    notifPermiso = true;
-    $('#btn-notif').css('opacity','1').attr('title','Notificaciones activas ✓');
-  }
-}
-
-function pedirPermiso() {
-  if (!('Notification' in window)) {
-    mostrarToast('warn','⚠️','Sin soporte','Este navegador no admite notificaciones push.');
-    return;
-  }
-  if (Notification.permission === 'granted') {
-    notifPermiso = true;
-    mostrarToast('ok','✅','Ya activas','Las notificaciones ya están activadas.');
-    return;
-  }
-  Notification.requestPermission().then(function(p) {
-    if (p === 'granted') {
-      notifPermiso = true;
-      $('#btn-notif').css('opacity','1');
-      mostrarToast('ok','✅','Listo','Recibirás alertas cuando el nivel sea bajo o crítico.');
-    } else {
-      mostrarToast('warn','⚠️','Bloqueadas','Actívalas desde el candado en la barra de tu navegador.');
-    }
-  });
-}
-
-function enviarPush(tipo, titulo, cuerpo) {
-  if (!notifPermiso || Notification.permission !== 'granted') return;
-  try {
-    var n = new Notification('💧 Tinaco UTC — ' + titulo, {
-      body: cuerpo,
-      requireInteraction: (tipo === 'critico')
-    });
-    n.onclick = function(){ window.focus(); n.close(); };
-  } catch(e){}
-}
-
-// ══════════════════════════════════════════════════════════
-//  TOAST EN PANTALLA
-// ══════════════════════════════════════════════════════════
-function mostrarToast(tipo, icono, titulo, msg) {
-  $('#toast-icon').text(icono);
-  $('#toast-titulo').text(titulo);
-  $('#toast-msg').text(msg);
-  $('#toast').removeClass('critico warn ok error').addClass(tipo + ' show');
-  $('#notif-badge').addClass('show');
-  if (toastTimer) clearTimeout(toastTimer);
-  if (tipo !== 'critico') toastTimer = setTimeout(cerrarToast, 8000);
-}
-function cerrarToast() {
-  $('#toast').removeClass('show');
-  $('#notif-badge').removeClass('show');
-}
-
-// ══════════════════════════════════════════════════════════
-//  CONSULTAR ESTADO AUTOMÁTICO (estado.php → estado_tinaco.json)
-// ══════════════════════════════════════════════════════════
-function consultarEstado() {
-  $.ajax({
-    url: 'php/estado.php', type: 'GET', dataType: 'json',
-    success: function(d) {
-      if (!d || !d.ok) return;
-      if (d.porcentaje !== null && d.porcentaje !== undefined) {
-        actualizarTinaco(d.porcentaje);
-        colorearPorcentaje(d.estado);
-      }
-      if (d.notificar && d.mensaje && d.timestamp !== ultimoTsNotif) {
-        ultimoTsNotif = d.timestamp;
-        var tipo  = d.estado === 'critico' ? 'critico' : 'warn';
-        var icono = d.estado === 'critico' ? '🚨' : '⚠️';
-        var tit   = d.estado === 'critico' ? '¡Nivel crítico!' : 'Nivel bajo';
-        mostrarToast(tipo, icono, tit, d.mensaje);
-        enviarPush(tipo, tit, d.mensaje);
-      }
-    }
-  });
-}
-
-// ══════════════════════════════════════════════════════════
-//  COUNTDOWN Y AUTO-MEDICIÓN
-// ══════════════════════════════════════════════════════════
-function iniciarCountdown() {
-  countdownSecs = CFG.intervaloAuto;
-  setInterval(function() {
+function iniciarCountdown(){
+  setInterval(function(){
     countdownSecs = Math.max(0, countdownSecs - 1);
     var m = Math.floor(countdownSecs / 60);
     var s = countdownSecs % 60;
     $('#countdown').text(m + ':' + String(s).padStart(2,'0'));
-    if (countdownSecs === 0) countdownSecs = CFG.intervaloAuto;
+    if(countdownSecs === 0) countdownSecs = CFG.intervaloAuto;
   }, 1000);
 }
 
-function iniciarAutoMedicion() {
-  setInterval(function() {
-    if (!$('#btn-medir').prop('disabled')) {
-      ejecutarMedicion(true);
-    }
+function iniciarAutoMedicion(){
+  setInterval(function(){
+    if(!$('#btn-medir').prop('disabled')) ejecutarMedicion(true);
   }, CFG.intervaloAuto * 1000);
+}
+
+// ══════════════════════════════════════════════════════════
+//  CONSULTAR ESTADO (para actualizar UI desde cron)
+// ══════════════════════════════════════════════════════════
+function consultarEstado(){
+  $.ajax({
+    url:'php/estado.php', type:'GET', dataType:'json',
+    success: function(d){
+      if(!d || !d.ok) return;
+      if(d.porcentaje !== null && d.porcentaje !== undefined){
+        actualizarTinaco(d.porcentaje);
+        colorearPorcentaje(d.estado);
+        actualizarResumen(d.porcentaje, d.timestamp ? d.timestamp.split(' ')[1] : null);
+      }
+      // Actualizar QR con el nombre real del bot si se pasa desde el server
+      if(d.telegram_bot){ actualizarQR(d.telegram_bot); }
+    }
+  });
 }
 
 // ══════════════════════════════════════════════════════════
 //  BOTÓN MEDIR
 // ══════════════════════════════════════════════════════════
-$('#btn-medir').click(function() {
+$('#btn-medir').click(function(){
   ejecutarMedicion(false);
   countdownSecs = CFG.intervaloAuto;
 });
 
-function ejecutarMedicion(esAuto) {
+function ejecutarMedicion(esAuto){
   var $btn = $('#btn-medir');
   $btn.prop('disabled', true);
-
-  if (!esAuto) {
+  if(!esAuto){
     $('#load-midiendo').addClass('show');
     ocultarAlerta();
     $('#dist-val').text('—');
-    $('#dot-estado').addClass('warn');
+    $('#dot-estado').css('background','var(--warn)');
     $('#txt-estado').text('Midiendo…');
   }
 
   $.ajax({
-    url: 'php/medir.php', type: 'POST',
-    success: function(resp) {
+    url:'php/medir.php', type:'POST',
+    success: function(resp){
       var data = null;
-      try { data = (typeof resp === 'object') ? resp : JSON.parse(resp); }
-      catch(e) {
+      try{ data = typeof resp==='object' ? resp : JSON.parse(resp); }
+      catch(e){
         var m = String(resp).match(/\{[\s\S]*\}/);
-        if (m) { try{ data = JSON.parse(m[0]); }catch(e2){} }
+        if(m){ try{ data=JSON.parse(m[0]); }catch(e2){} }
       }
-      if (data && data.ok) procesarRespuesta(data, esAuto);
-      else if (!esAuto) mostrarAlerta('error','⚠️ ' + ((data && data.error) || 'Error desconocido'));
+      if(data && data.ok) procesarRespuesta(data, esAuto);
+      else if(!esAuto) mostrarAlerta('error','⚠️ ' + ((data&&data.error)||'Error desconocido'));
     },
-    error: function(xhr) {
-      if (!esAuto) mostrarAlerta('error','⚠️ ' + (xhr.responseText || 'Error de comunicación'));
+    error: function(xhr){
+      if(!esAuto) mostrarAlerta('error','⚠️ Error de comunicación');
     },
-    complete: function() {
+    complete: function(){
       $btn.prop('disabled', false);
-      if (!esAuto) {
+      if(!esAuto){
         $('#load-midiendo').removeClass('show');
-        $('#dot-estado').removeClass('warn');
+        $('#dot-estado').css('background','var(--ok)');
         $('#txt-estado').text('Activo');
       }
     }
@@ -639,90 +593,78 @@ function ejecutarMedicion(esAuto) {
 // ══════════════════════════════════════════════════════════
 //  PROCESAR RESPUESTA
 // ══════════════════════════════════════════════════════════
-function procesarRespuesta(data, esAuto) {
-  if (data.fuera) {
-    if (!esAuto) {
+function procesarRespuesta(data, esAuto){
+  if(data.fuera){
+    if(!esAuto){
       $('#dist-val').text('Sin señal');
-      mostrarAlerta('warn','📡 Sensor sin obstáculo — Verifica posición dentro del tinaco.');
+      mostrarAlerta('warn','📡 Sensor sin obstáculo — Verifica posición.');
     }
     return;
   }
-
   var pct    = data.porcentaje;
   var estado = data.estado;
   var dist   = data.distancia;
 
   actualizarTinaco(pct);
   colorearPorcentaje(estado);
-
-  if (!esAuto) {
+  if(!esAuto){
     $('#dist-val').text(dist + ' cm');
-    mostrarAlertaEnCard(pct, estado);
+    mostrarAlertaCard(pct, estado);
   }
-
-  agregarHistorial(dist, pct, estado, data.hora || '');
-  actualizarResumen(pct, data.hora || '');
-
-  // Notificaciones también al medir manualmente
-  if (estado === 'critico') {
-    mostrarToast('critico','🚨','¡Nivel crítico!','Tinaco al ' + pct + '% — Rellena de inmediato.');
-    enviarPush('critico','¡Nivel crítico!','Tinaco al ' + pct + '% — Acción inmediata.');
-  } else if (estado === 'bajo') {
-    mostrarToast('warn','⚠️','Nivel bajo','Tinaco al ' + pct + '% — Considera rellenarlo pronto.');
-    enviarPush('bajo','Nivel bajo','Tinaco al ' + pct + '% — Considera rellenarlo.');
-  }
+  agregarHistorial(dist, pct, estado);
+  actualizarResumen(pct, data.hora || null);
 }
 
 // ══════════════════════════════════════════════════════════
 //  UI
 // ══════════════════════════════════════════════════════════
-function actualizarTinaco(pct) {
+function actualizarTinaco(pct){
   $('#pct-num').text(pct + '%');
   var h    = Math.round(pct * 2);
-  var yAgua = 240 - h;
-  $('#agua-fill').attr({ y: yAgua, height: h });
-  $('#nivel-line').attr({ y1: yAgua, y2: yAgua });
+  var y    = 240 - h;
+  $('#agua-fill').attr({ y: y, height: h });
+  $('#nivel-line').attr({ y1: y, y2: y });
   $('#wave-path').attr('d',
-    'M0 '    + yAgua + ' Q25 '  + (yAgua-7) + ' 50 '  + yAgua +
-    ' Q75 '  + (yAgua+7) + ' 100 ' + yAgua +
-    ' Q125 ' + (yAgua-7) + ' 150 ' + yAgua +
-    ' Q175 ' + (yAgua+7) + ' 200 ' + yAgua +
-    ' Q225 ' + (yAgua-7) + ' 250 ' + yAgua +
-    ' Q275 ' + (yAgua+7) + ' 300 ' + yAgua +
+    'M0 '    + y + ' Q25 '  + (y-7) + ' 50 '  + y +
+    ' Q75 '  + (y+7) + ' 100 ' + y +
+    ' Q125 ' + (y-7) + ' 150 ' + y +
+    ' Q175 ' + (y+7) + ' 200 ' + y +
+    ' Q225 ' + (y-7) + ' 250 ' + y +
+    ' Q275 ' + (y+7) + ' 300 ' + y +
     ' L300 260 L0 260 Z'
   );
 }
 
-function colorearPorcentaje(estado) {
-  if (estado === 'critico') {
+function colorearPorcentaje(estado){
+  if(estado === 'critico'){
     $('#pct-num').css({'background':'none','-webkit-background-clip':'unset','-webkit-text-fill-color':'var(--critico)'});
-  } else if (estado === 'bajo') {
+  } else if(estado === 'bajo'){
     $('#pct-num').css({'background':'none','-webkit-background-clip':'unset','-webkit-text-fill-color':'var(--warn)'});
   } else {
-    $('#pct-num').css({'background':'linear-gradient(135deg, var(--cyan), var(--azul))','-webkit-background-clip':'text','-webkit-text-fill-color':'transparent'});
+    $('#pct-num').css({'background':'linear-gradient(135deg, var(--cyan), var(--azul))',
+      '-webkit-background-clip':'text','-webkit-text-fill-color':'transparent'});
   }
 }
 
-function mostrarAlertaEnCard(pct, estado) {
+function mostrarAlertaCard(pct, estado){
   var map = {
-    critico: ['critico','🚨 Nivel CRÍTICO: ' + pct + '% — Acción inmediata'],
-    bajo:    ['warn',   '⚠️ Nivel BAJO: '    + pct + '% — Rellena pronto'],
-    normal:  ['ok',     '✅ Nivel NORMAL: '  + pct + '% — Sin problema']
+    critico: ['critico', '🚫 Sin agua — El tinaco está vacío (' + pct + '%)'],
+    bajo:    ['warn',    '⚠️ A la mitad — Tinaco al ' + pct + '% de capacidad'],
+    normal:  ['ok',      '✅ Nivel normal — Tinaco al ' + pct + '%']
   };
   var e = map[estado] || ['ok','✅ ' + pct + '%'];
   mostrarAlerta(e[0], e[1]);
 }
 
-function actualizarResumen(pct, hora) {
-  if (!hora) {
-    var now = new Date();
-    hora = [now.getHours(), now.getMinutes(), now.getSeconds()]
-          .map(function(n){ return String(n).padStart(2,'0'); }).join(':');
+function actualizarResumen(pct, hora){
+  if(!hora){
+    var n = new Date();
+    hora  = [n.getHours(),n.getMinutes(),n.getSeconds()].map(function(x){return String(x).padStart(2,'0');}).join(':');
   }
   resumen.total++;
   resumen.suma += pct;
-  resumen.max   = resumen.max === null ? pct : Math.max(resumen.max, pct);
-  resumen.min   = resumen.min === null ? pct : Math.min(resumen.min, pct);
+  resumen.max   = resumen.max===null ? pct : Math.max(resumen.max, pct);
+  resumen.min   = resumen.min===null ? pct : Math.min(resumen.min, pct);
   var prom = Math.round(resumen.suma / resumen.total);
   $('#res-total').text(resumen.total);
   $('#res-prom').text(prom + '%');
@@ -731,19 +673,14 @@ function actualizarResumen(pct, hora) {
   $('#res-ultima').text(pct + '%  ·  ' + hora);
 }
 
-function agregarHistorial(dist, pct, estado, hora) {
-  if (!hora) {
-    var now = new Date();
-    hora = [now.getHours(), now.getMinutes(), now.getSeconds()]
-          .map(function(n){ return String(n).padStart(2,'0'); }).join(':');
-  }
-  var color = estado === 'critico' ? 'var(--critico)'
-            : estado === 'bajo'    ? 'var(--warn)'
-            : 'var(--azul)';
-  historial.unshift({ hora: hora, dist: dist, pct: pct, color: color });
-  if (historial.length > CFG.maxHistorial) historial.pop();
+function agregarHistorial(dist, pct, estado){
+  var n    = new Date();
+  var hora = [n.getHours(),n.getMinutes(),n.getSeconds()].map(function(x){return String(x).padStart(2,'0');}).join(':');
+  var color = estado==='critico' ? 'var(--critico)' : estado==='bajo' ? 'var(--warn)' : 'var(--azul)';
+  historial.unshift({hora:hora, dist:dist, pct:pct, color:color});
+  if(historial.length > CFG.maxHistorial) historial.pop();
   var $ul = $('#historial').empty();
-  $.each(historial, function(_, item) {
+  $.each(historial, function(_,item){
     $ul.append(
       '<li style="border-left-color:' + item.color + '">' +
         '<span>' + item.dist + ' cm</span>' +
@@ -754,8 +691,13 @@ function agregarHistorial(dist, pct, estado, hora) {
   });
 }
 
-function mostrarAlerta(tipo, msg) { $('#alerta').removeClass().addClass('alerta show ' + tipo).text(msg); }
-function ocultarAlerta()          { $('#alerta').removeClass('show'); }
+function actualizarQR(botUsername){
+  var url = 'https://t.me/' + botUsername;
+  $('#tg-qr-link').attr('href', url);
+}
+
+function mostrarAlerta(tipo, msg){ $('#alerta').removeClass().addClass('alerta show ' + tipo).text(msg); }
+function ocultarAlerta(){ $('#alerta').removeClass('show'); }
 </script>
 
 </body>
