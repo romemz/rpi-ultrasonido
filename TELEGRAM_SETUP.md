@@ -26,7 +26,7 @@ TELEGRAM_CHAT_ID = 'TU_CHAT_ID_AQUI'
 ```python
 TELEGRAM_CHAT_ID = ['111111111', '222222222']   # varios usuarios
 # o
-TELEGRAM_CHAT_ID = '-1001234567890'              # ID de un grupo
+TELEGRAM_CHAT_ID = '-5244203258'              # ID de un grupo
 ```
 
 ## Para añadir a un grupo:

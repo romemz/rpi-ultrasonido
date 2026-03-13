@@ -38,7 +38,7 @@ ARCHIVO_PREV   = '/var/www/html/rpi-ultrasonido/estado_tinaco.prev.json'
 # PASO 3: Entra a https://api.telegram.org/bot<TOKEN>/getUpdates
 #         y copia el número "id" que aparece en "chat"
 TELEGRAM_TOKEN   = '8793840618:AAEOPUkxE9naCj86knQ3dPPIXwTO7roCGz4'    # ← reemplaza
-TELEGRAM_CHAT_ID = '8080882382'  # ← reemplaza
+TELEGRAM_CHAT_ID = '-5244203258'  # ← reemplaza
 
 # Para varios usuarios o un grupo:
 # TELEGRAM_CHAT_ID = ['111111111', '222222222', '-333333333']
