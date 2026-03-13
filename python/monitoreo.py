@@ -1,19 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-monitoreo.py
-Medidor Inteligente de Niveles – UTC
-
-Mide automáticamente el nivel del tinaco,
-guarda estado en JSON y envía notificaciones
-por Telegram cuando el nivel baja a:
-
-50%  -> mitad
-25%  -> casi vacío
-0%   -> vacío
-"""
-
 import subprocess
 import json
 import os
@@ -22,36 +9,29 @@ import urllib.request
 import urllib.parse
 from datetime import datetime
 
-# ─────────────────────────────────────────────
-# CONFIGURACIÓN
-# ─────────────────────────────────────────────
+# ───────── CONFIGURACIÓN ─────────
 
-SCRIPT_SENSOR  = '/var/www/html/rpi-ultrasonido/python/medidor_db.py'
-PYTHON_BIN     = '/usr/bin/python3'
+SCRIPT_SENSOR = '/var/www/html/rpi-ultrasonido/python/medidor_db.py'
+PYTHON_BIN = '/usr/bin/python3'
 
 ARCHIVO_ESTADO = '/var/www/html/rpi-ultrasonido/estado_tinaco.json'
-ARCHIVO_PREV   = '/var/www/html/rpi-ultrasonido/estado_tinaco.prev.json'
+ARCHIVO_PREV = '/var/www/html/rpi-ultrasonido/estado_tinaco.prev.json'
 
-# TELEGRAM
-TELEGRAM_TOKEN   = "8793840618:AAEOPUkxE9naCj86knQ3dPPIXwTO7roCGz4"
+TELEGRAM_TOKEN = "8793840618:AAEOPUkxE9naCj86knQ3dPPIXwTO7roCGz4"
 TELEGRAM_CHAT_ID = "-5244203258"
 
 UMBRALES = [50,25,0]
 
-# ─────────────────────────────────────────────
+# ───────── LOG ─────────
 
 def log(msg):
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
 
-
-# ─────────────────────────────────────────────
-# EJECUTAR SENSOR
-# ─────────────────────────────────────────────
+# ───────── SENSOR ─────────
 
 def ejecutar_medidor():
 
     try:
-
         salida = subprocess.check_output(
             ['sudo',PYTHON_BIN,SCRIPT_SENSOR],
             stderr=subprocess.STDOUT,
@@ -61,14 +41,11 @@ def ejecutar_medidor():
         return salida
 
     except Exception as e:
-
-        log(f"[ERROR SENSOR] {e}")
+        log(f"ERROR SENSOR: {e}")
         return None
 
 
-# ─────────────────────────────────────────────
-# PARSEAR RESULTADO
-# ─────────────────────────────────────────────
+# ───────── PARSEAR ─────────
 
 def parsear_salida(salida):
 
@@ -76,26 +53,18 @@ def parsear_salida(salida):
         return None,None,None
 
     dist = re.search(r'Distancia:\s*([\d.]+)',salida)
-    niv  = re.search(r'Nivel:\s*(\d+)',salida)
-    est  = re.search(r'Estado:\s*([A-Za-z]+)',salida)
+    nivel = re.search(r'Nivel:\s*(\d+)',salida)
+    estado = re.search(r'Estado:\s*([A-Za-z]+)',salida)
 
     distancia = float(dist.group(1)) if dist else None
-    porcentaje = int(niv.group(1)) if niv else None
+    porcentaje = int(nivel.group(1)) if nivel else None
 
-    mapa = {
-        "Lleno":"normal",
-        "Medio":"bajo",
-        "Bajo":"critico"
-    }
+    estado_txt = estado.group(1) if estado else "Normal"
 
-    estado = mapa.get(est.group(1) if est else "","normal")
-
-    return distancia,porcentaje,estado
+    return distancia,porcentaje,estado_txt
 
 
-# ─────────────────────────────────────────────
-# ARCHIVOS DE CONTROL
-# ─────────────────────────────────────────────
+# ───────── ARCHIVOS ─────────
 
 def leer_prev():
 
@@ -113,50 +82,15 @@ def leer_prev():
 def guardar_prev(datos):
 
     try:
-
         with open(ARCHIVO_PREV,"w") as f:
             json.dump(datos,f)
-
     except Exception as e:
-
-        log(f"[ERROR GUARDAR] {e}")
-
-
-# ─────────────────────────────────────────────
-# GUARDAR ESTADO JSON
-# ─────────────────────────────────────────────
-
-def escribir_estado_json(distancia,porcentaje,estado,notificar,mensaje):
-
-    datos = {
-        "ok":True,
-        "distancia":distancia,
-        "porcentaje":porcentaje,
-        "estado":estado,
-        "notificar":notificar,
-        "mensaje":mensaje,
-        "timestamp":datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    }
-
-    try:
-
-        with open(ARCHIVO_ESTADO,"w") as f:
-            json.dump(datos,f,ensure_ascii=False)
-
-    except Exception as e:
-
-        log(f"[ERROR JSON] {e}")
+        log(f"ERROR GUARDAR: {e}")
 
 
-# ─────────────────────────────────────────────
-# TELEGRAM
-# ─────────────────────────────────────────────
+# ───────── TELEGRAM ─────────
 
 def enviar_telegram(texto):
-
-    if not TELEGRAM_TOKEN:
-        log("Token Telegram no configurado")
-        return
 
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
 
@@ -170,63 +104,55 @@ def enviar_telegram(texto):
 
         req = urllib.request.Request(url,data=datos)
 
-        with urllib.request.urlopen(req,timeout=10) as resp:
+        with urllib.request.urlopen(req) as resp:
 
             r = json.loads(resp.read())
 
             if r.get("ok"):
-                log("Telegram enviado correctamente")
+                log("Mensaje enviado a Telegram")
             else:
                 log(f"Error Telegram: {r}")
 
     except Exception as e:
 
-        log(f"Error Telegram: {e}")
+        log(f"Error enviando Telegram: {e}")
 
 
-# ─────────────────────────────────────────────
-# MENSAJE
-# ─────────────────────────────────────────────
+# ───────── MENSAJE ─────────
 
 def construir_mensaje(p):
 
-    hora = datetime.now().strftime("%H:%M")
     fecha = datetime.now().strftime("%d/%m/%Y")
+    hora = datetime.now().strftime("%H:%M")
 
     if p <= 5:
 
         emoji="🚫"
-        titulo="TINACO SIN AGUA"
-        detalle="El tinaco está vacío."
+        texto="TINACO SIN AGUA"
 
     elif p <= 25:
 
         emoji="🚨"
-        titulo="TINACO CASI VACÍO"
-        detalle=f"Nivel actual <b>{p}%</b>"
+        texto="TINACO CASI VACÍO"
 
     else:
 
         emoji="⚠️"
-        titulo="TINACO A LA MITAD"
-        detalle=f"Nivel actual <b>{p}%</b>"
+        texto="TINACO A LA MITAD"
 
     return f"""
-{emoji} <b>Medidor de Tinaco – UTC</b>
+{emoji} Medidor de Tinaco UTC
 
-{titulo}
+{texto}
 
-{detalle}
+Nivel actual: {p}%
 
-Nivel: <b>{p}%</b>
-
-{fecha} {hora}
+Fecha: {fecha}
+Hora: {hora}
 """
 
 
-# ─────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────
+# ───────── MAIN ─────────
 
 def main():
 
@@ -235,63 +161,60 @@ def main():
     salida = ejecutar_medidor()
 
     if not salida:
-        escribir_estado_json(None,None,"sin_señal",False,"")
+        log("No se pudo leer sensor")
         return
 
     distancia,porcentaje,estado = parsear_salida(salida)
 
     if porcentaje is None:
-
-        escribir_estado_json(None,None,"sin_señal",False,"")
+        log("No se detectó porcentaje")
         return
 
+
+    log(f"Nivel detectado: {porcentaje}%")
 
     prev = leer_prev()
 
     umbrales = prev["umbrales_notificados"]
 
-    umbral_cruzado = None
+    umbral = None
 
-    for u in sorted(UMBRALES,reverse=True):
+    for u in UMBRALES:
 
         if porcentaje <= u and u not in umbrales:
 
-            umbral_cruzado = u
+            umbral = u
             break
 
 
-    notificar=False
-    mensaje=""
+    # SI ES LA PRIMERA VEZ MANDA MENSAJE
+    if not umbrales:
+
+        enviar_telegram(f"📡 Sistema de monitoreo iniciado\nNivel actual: {porcentaje}%")
+
+        umbrales.append(100)
+
+        guardar_prev({"umbrales_notificados":umbrales})
 
 
-    if umbral_cruzado is not None:
+    if umbral is not None:
 
-        notificar=True
+        mensaje = construir_mensaje(porcentaje)
 
-        msg_telegram = construir_mensaje(porcentaje)
+        enviar_telegram(mensaje)
 
-        enviar_telegram(msg_telegram)
+        umbrales.append(umbral)
 
-        umbrales.append(umbral_cruzado)
-
-        mensaje=f"Alerta nivel {porcentaje}%"
-
-        log(f"Alerta enviada {porcentaje}%")
+        guardar_prev({"umbrales_notificados":umbrales})
 
 
-    elif porcentaje > 55 and umbrales:
+    # reset cuando se llena
+    if porcentaje > 80:
 
-        umbrales=[]
-
-        log("Tinaco lleno, reiniciando alertas")
-
-
-    guardar_prev({"umbrales_notificados":umbrales})
-
-    escribir_estado_json(distancia,porcentaje,estado,notificar,mensaje)
+        guardar_prev({"umbrales_notificados":[]})
 
 
-    log("Monitoreo terminado")
+    log("Monitoreo finalizado")
 
 
 if __name__=="__main__":
