@@ -97,10 +97,10 @@ def detectar_rango(p):
     if 40 <= p <= 50:
         return "mitad"
 
-    if 15 <= p <= 25:
+    if 16 <= p <= 39:
         return "bajo"
 
-    if p <= 5:
+    if  0 <= p <= 15:
         return "vacio"
 
     return None
