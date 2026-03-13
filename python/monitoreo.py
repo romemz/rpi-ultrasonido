@@ -114,7 +114,7 @@ def escribir_estado_json(distancia, porcentaje, estado, notificar, mensaje):
 
 
 def enviar_telegram(texto):
-    if TELEGRAM_TOKEN == 'AQUI_VA_TU_TOKEN':
+    if TELEGRAM_TOKEN == '8793840618:AAEOPUkxE9naCj86knQ3dPPIXwTO7roCGz4':
         log("[TELEGRAM] Token no configurado — omitiendo")
         return
     ids = TELEGRAM_CHAT_ID if isinstance(TELEGRAM_CHAT_ID, list) else [TELEGRAM_CHAT_ID]
