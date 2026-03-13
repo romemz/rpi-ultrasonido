@@ -9,7 +9,8 @@ import urllib.request
 import urllib.parse
 from datetime import datetime
 
-# CONFIGURACIÓN
+# ───────── CONFIGURACIÓN ─────────
+
 SCRIPT_SENSOR = '/var/www/html/rpi-ultrasonido/python/medidor_db.py'
 PYTHON_BIN = '/usr/bin/python3'
 
@@ -20,12 +21,13 @@ TELEGRAM_CHAT_ID = "-5244203258"
 
 UMBRALES = [50,25,0]
 
+# ───────── LOG ─────────
 
 def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
 
+# ───────── EJECUTAR SENSOR ─────────
 
-# EJECUTA EL SENSOR
 def ejecutar_sensor():
 
     try:
@@ -44,7 +46,8 @@ def ejecutar_sensor():
         return None
 
 
-# PARSEA RESULTADO
+# ───────── PARSEAR RESULTADO ─────────
+
 def parsear_salida(salida):
 
     dist = re.search(r'Distancia:\s*([\d.]+)',salida)
@@ -56,45 +59,74 @@ def parsear_salida(salida):
     return distancia,porcentaje
 
 
-# LEE ARCHIVO DE CONTROL
+# ───────── LEER ESTADO ─────────
+
 def leer_prev():
 
     if os.path.exists(ARCHIVO_PREV):
 
         try:
             with open(ARCHIVO_PREV) as f:
-                return json.load(f)
+                data=json.load(f)
+
+                # Compatibilidad con versiones viejas
+                umbrales=data.get("umbrales") or data.get("umbrales_notificados") or []
+                ultimo=data.get("ultimo_nivel")
+
+                return {
+                    "umbrales":umbrales,
+                    "ultimo_nivel":ultimo
+                }
+
         except:
             pass
 
-    return {"umbrales":[]}
+    return {
+        "umbrales":[],
+        "ultimo_nivel":None
+    }
 
 
-# GUARDA ARCHIVO DE CONTROL
+# ───────── GUARDAR ESTADO ─────────
+
 def guardar_prev(datos):
 
+    data={
+        "umbrales":datos["umbrales"],
+        "umbrales_notificados":datos["umbrales"],
+        "ultimo_nivel":datos["ultimo_nivel"]
+    }
+
     with open(ARCHIVO_PREV,"w") as f:
-        json.dump(datos,f)
+        json.dump(data,f)
 
 
-# ENVÍA MENSAJE TELEGRAM
+# ───────── TELEGRAM ─────────
+
 def enviar_telegram(texto):
 
     url=f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
 
-    datos=urllib.parse.urlencode({
-        "chat_id":TELEGRAM_CHAT_ID,
-        "text":texto
-    }).encode()
+    try:
 
-    req=urllib.request.Request(url,data=datos)
+        datos=urllib.parse.urlencode({
+            "chat_id":TELEGRAM_CHAT_ID,
+            "text":texto
+        }).encode()
 
-    urllib.request.urlopen(req)
+        req=urllib.request.Request(url,data=datos)
 
-    log("Mensaje enviado")
+        urllib.request.urlopen(req)
+
+        log("Mensaje enviado a Telegram")
+
+    except Exception as e:
+
+        log(f"Error Telegram: {e}")
 
 
-# CONSTRUYE MENSAJE
+# ───────── MENSAJE ─────────
+
 def construir_mensaje(p):
 
     if p <= 5:
@@ -110,7 +142,8 @@ def construir_mensaje(p):
         return f"⚠️ ALERTA\nTinaco a la mitad\nNivel actual {p}%"
 
 
-# MAIN
+# ───────── MAIN ─────────
+
 def main():
 
     log("Monitoreo iniciado")
@@ -130,31 +163,34 @@ def main():
     prev=leer_prev()
 
     umbrales_notificados=prev["umbrales"]
+    ultimo_nivel=prev["ultimo_nivel"]
 
+    # Detectar cruces de umbral
+    if ultimo_nivel is not None:
 
-    # DETECTAR UMBRAL
-    for u in UMBRALES:
+        for u in UMBRALES:
 
-        if porcentaje <= u and u not in umbrales_notificados:
+            if ultimo_nivel > u and porcentaje <= u and u not in umbrales_notificados:
 
-            mensaje=construir_mensaje(porcentaje)
+                mensaje=construir_mensaje(porcentaje)
 
-            enviar_telegram(mensaje)
+                enviar_telegram(mensaje)
 
-            umbrales_notificados.append(u)
+                umbrales_notificados.append(u)
 
-            guardar_prev({"umbrales":umbrales_notificados})
+                break
 
-            break
-
-
-    # SI SE LLENA OTRA VEZ RESETEA
+    # Reset si se llena
     if porcentaje > 80:
 
-        guardar_prev({"umbrales":[]})
+        umbrales_notificados=[]
 
         log("Tinaco lleno → reinicio de alertas")
 
+    guardar_prev({
+        "umbrales":umbrales_notificados,
+        "ultimo_nivel":porcentaje
+    })
 
     log("Monitoreo terminado")
 
