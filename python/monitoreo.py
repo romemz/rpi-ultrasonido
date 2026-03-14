@@ -14,8 +14,8 @@ PYTHON_BIN = '/usr/bin/python3'
 
 ARCHIVO_PREV = '/var/www/html/rpi-ultrasonido/estado_tinaco.prev.json'
 
-TELEGRAM_TOKEN = "TU_TOKEN_AQUI"
-TELEGRAM_CHAT_ID = "TU_CHAT_ID_AQUI"
+TELEGRAM_TOKEN = "8793840618:AAEOPUkxE9naCj86knQ3dPPIXwTO7roCGz4"
+TELEGRAM_CHAT_ID = "-5244203258"
 
 
 def log(msg):
