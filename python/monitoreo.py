@@ -14,8 +14,8 @@ PYTHON_BIN = '/usr/bin/python3'
 
 ARCHIVO_PREV = '/var/www/html/rpi-ultrasonido/estado_tinaco.prev.json'
 
-TELEGRAM_TOKEN = "8793840618:AAEOPUkxE9naCj86knQ3dPPIXwTO7roCGz4"
-TELEGRAM_CHAT_ID = "-5244203258"
+TELEGRAM_TOKEN = "TU_TOKEN_AQUI"
+TELEGRAM_CHAT_ID = "TU_CHAT_ID_AQUI"
 
 
 def log(msg):
@@ -92,16 +92,17 @@ def enviar_telegram(texto):
     log("Mensaje enviado a Telegram")
 
 
+# NUEVAS VALIDACIONES
 def detectar_rango(p):
 
-    if 40 <= p <= 50:
-        return "mitad"
+    if p == 0:
+        return "vacio"
 
-    if 16 <= p <= 39:
+    if 1 <= p <= 25:
         return "bajo"
 
-    if  0 <= p <= 15:
-        return "vacio"
+    if 26 <= p <= 50:
+        return "mitad"
 
     return None
 
@@ -112,10 +113,10 @@ def construir_mensaje(tipo, p):
         return f"⚠️ Tinaco a la mitad\nNivel actual {p}%"
 
     if tipo == "bajo":
-        return f"🚨 Tinaco casi vacío\nNivel actual {p}%"
+        return f"🚨 Nivel bajo de agua\nNivel actual {p}%"
 
     if tipo == "vacio":
-        return f"🚫 Tinaco SIN AGUA\nNivel actual {p}%"
+        return f"🚫 Tinaco VACÍO\nNivel actual {p}%"
 
 
 def main():
@@ -147,11 +148,12 @@ def main():
         prev["alerta"] = alerta_actual
 
 
-    if porcentaje > 80:
+    # Si vuelve a estar arriba de 50 se reinician alertas
+    if porcentaje >= 51:
 
         prev["alerta"] = None
 
-        log("Tinaco lleno → reinicio de alertas")
+        log("Nivel normal → reinicio de alertas")
 
 
     prev["ultimo_nivel"] = porcentaje
