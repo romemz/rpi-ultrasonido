@@ -21,11 +21,10 @@ TELEGRAM_CHAT_ID = "-5244203258"
 def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
 
-
 def ejecutar_sensor():
     try:
         salida = subprocess.check_output(
-            ['sudo', PYTHON_BIN, SCRIPT_SENSOR],
+            [PYTHON_BIN, SCRIPT_SENSOR],
             stderr=subprocess.STDOUT,
             timeout=20
         ).decode().strip()
@@ -35,7 +34,6 @@ def ejecutar_sensor():
     except Exception as e:
         log(f"ERROR SENSOR: {e}")
         return None
-
 
 def parsear_salida(salida):
 
