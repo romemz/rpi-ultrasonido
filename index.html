@@ -190,6 +190,8 @@
     .tg-card {
       background: linear-gradient(135deg, rgba(34,158,217,.12), rgba(34,158,217,.05));
       border: 1px solid rgba(34,158,217,.35);
+      grid-column: 1 / -1;
+      width: 100%;
     }
     .tg-card .card-title { color: var(--telegram); }
 
@@ -403,48 +405,41 @@
       </div>
     </div>
 
-    <!-- ══ TARJETA TELEGRAM ══ -->
-    <div class="card tg-card">
-      <div class="card-title">🔔 Notificaciones en tu celular</div>
+  </div>
 
-      <div class="tg-header">
-        <div class="tg-icon">✈️</div>
-        <div class="tg-header-text">
-          <h3>Bot de Telegram</h3>
-          <p>Alertas en Android e iOS sin instalar apps extras</p>
-        </div>
-      </div>
+  <!-- ══ TARJETA TELEGRAM (ahora a todo ancho) ══ -->
+  <div class="card tg-card">
+    <div class="card-title">🔔 Notificaciones en tu celular</div>
 
-      <div class="tg-alertas">
-        <span class="tg-chip warn">⚠️ 50% — A la mitad</span>
-        <span class="tg-chip red">🚨 25% — Casi vacío</span>
-        <span class="tg-chip danger">🚫 0% — Sin agua</span>
-      </div>
-
-      <div class="qr-section">
-        <p>Escanea para abrir el bot en Telegram<br>y presiona <b>START</b></p>
-        <!-- QR generado en SVG puro — apunta a t.me/TU_BOT -->
-        <!-- ⚠️  Reemplaza la URL del href y el SVG del QR con el de tu bot -->
-        <!-- Genera tu QR en: https://www.qrcode-monkey.com  -->
-        
-      <a class="qr-box" id="tg-qr-link" href="https://t.me/medidor_utc_bot" target="_blank">
-
-<img src="qr_telegram.png" width="120" height="120" style="display:block;margin:auto;">
-
-<span class="qr-label">ABRIR BOT</span>
-
-</a>
-
-      </div>
-
-      <div class="tg-steps">
-        <div class="tg-step"><span class="tg-step-num">1</span><span>Escanea el QR o busca el bot en Telegram</span></div>
-        <div class="tg-step"><span class="tg-step-num">2</span><span>Presiona <b>START</b> en el chat del bot</span></div>
-        <div class="tg-step"><span class="tg-step-num">3</span><span>Listo — recibirás alertas al 50%, 25% y 0%</span></div>
+    <div class="tg-header">
+      <div class="tg-icon">✈️</div>
+      <div class="tg-header-text">
+        <h3>Bot de Telegram</h3>
+        <p>Alertas en Android e iOS sin instalar apps extras</p>
       </div>
     </div>
 
+    <div class="tg-alertas">
+      <span class="tg-chip warn">⚠️ 50% — A la mitad</span>
+      <span class="tg-chip red">🚨 25% — Casi vacío</span>
+      <span class="tg-chip danger">🚫 0% — Sin agua</span>
+    </div>
+
+    <div class="qr-section">
+      <p>Escanea para abrir el bot en Telegram<br>y presiona <b>START</b></p>
+      <a class="qr-box" id="tg-qr-link" href="https://t.me/medidor_utc_bot" target="_blank">
+        <img src="qr_telegram.png" width="120" height="120" style="display:block;margin:auto;">
+        <span class="qr-label">ABRIR BOT</span>
+      </a>
+    </div>
+
+    <div class="tg-steps">
+      <div class="tg-step"><span class="tg-step-num">1</span><span>Escanea el QR o busca el bot en Telegram</span></div>
+      <div class="tg-step"><span class="tg-step-num">2</span><span>Presiona <b>START</b> en el chat del bot</span></div>
+      <div class="tg-step"><span class="tg-step-num">3</span><span>Listo — recibirás alertas al 50%, 25% y 0%</span></div>
+    </div>
   </div>
+
 </main>
 
 <!-- ══════════ FOOTER ══════════ -->
