@@ -519,12 +519,22 @@ function iniciarAutoMedicion(){
 
 function _formatAdjustedTime(horaStr){
   // horaStr puede ser "HH:MM:SS" o "YYYY-MM-DD HH:MM:SS" o null
-  var match = horaStr ? String(horaStr).match(/(\d{2}:\d{2}:\d{2})/) : null;
-  var d = new Date();
-  if(match){
-    var parts = match[1].split(':').map(function(x){return parseInt(x,10);});
-    d.setHours(parts[0]); d.setMinutes(parts[1]); d.setSeconds(parts[2]);
+  var d = null;
+  if(horaStr){
+    horaStr = String(horaStr).trim();
+    var full = horaStr.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})$/);
+    if(full){
+      // crear Date usando formato ISO local (sin zona)
+      d = new Date(full[1] + 'T' + full[2]);
+    } else {
+      var match = horaStr.match(/(\d{2}):(\d{2}):(\d{2})/);
+      if(match){
+        d = new Date();
+        d.setHours(parseInt(match[1],10), parseInt(match[2],10), parseInt(match[3],10), 0);
+      }
+    }
   }
+  if(!d) d = new Date();
   // aplicar corrección (puede ser 0)
   if(typeof CFG.tzCorrection === 'number' && CFG.tzCorrection !== 0){
     d.setHours(d.getHours() + CFG.tzCorrection);
@@ -546,7 +556,8 @@ function consultarEstado(){
       if(d.porcentaje !== null && d.porcentaje !== undefined){
         actualizarTinaco(d.porcentaje);
         colorearPorcentaje(d.estado);
-        actualizarResumen(d.porcentaje, d.timestamp ? d.timestamp : null);
+        // aceptar timestamp en `timestamp` o `hora`
+        actualizarResumen(d.porcentaje, d.timestamp || d.hora || null);
       }
       // Actualizar QR con el nombre real del bot si se pasa desde el server
       if(d.telegram_bot){ actualizarQR(d.telegram_bot); }
@@ -582,7 +593,7 @@ function ejecutarMedicion(esAuto){
         var m = String(resp).match(/\{[\s\S]*\}/);
         if(m){ try{ data=JSON.parse(m[0]); }catch(e2){} }
       }
-      if(data && data.ok) procesarRespuesta(data, esAuto);
+          if(data && data.ok) procesarRespuesta(data, esAuto);
       else if(!esAuto) mostrarAlerta('error','⚠️ ' + ((data&&data.error)||'Error desconocido'));
     },
     error: function(xhr){
@@ -613,6 +624,7 @@ function procesarRespuesta(data, esAuto){
   var pct    = data.porcentaje;
   var estado = data.estado;
   var dist   = data.distancia;
+  var hora   = data.hora || null;
 
   actualizarTinaco(pct);
   colorearPorcentaje(estado);
@@ -620,8 +632,8 @@ function procesarRespuesta(data, esAuto){
     $('#dist-val').text(dist + ' cm');
     mostrarAlertaCard(pct, estado);
   }
-  agregarHistorial(dist, pct, estado);
-  actualizarResumen(pct, data.hora || null);
+  agregarHistorial(dist, pct, estado, hora);
+  actualizarResumen(pct, hora);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -679,8 +691,8 @@ function actualizarResumen(pct, hora){
   $('#res-ultima').text(pct + '%  ·  ' + displayHora);
 }
 
-function agregarHistorial(dist, pct, estado){
-  var hora = _formatAdjustedTime(null);
+function agregarHistorial(dist, pct, estado, horaRaw){
+  var hora = _formatAdjustedTime(horaRaw);
   var color = estado==='critico' ? 'var(--critico)' : estado==='bajo' ? 'var(--warn)' : 'var(--azul)';
   historial.unshift({hora:hora, dist:dist, pct:pct, color:color});
   if(historial.length > CFG.maxHistorial) historial.pop();
