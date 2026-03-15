@@ -479,6 +479,37 @@ var CFG = {
   intervaloEstado: 60,       // segundos para consultar estado.php
   maxHistorial:    8
 };
+// Corrección de zona horaria en horas (por ejemplo -6 para UTC-6).
+// Pon 0 para sin corrección, o ajusta según tu servidor. Puedes cambiarlo en tiempo de ejecución.
+CFG.tzCorrection = -6;
+
+function _formatAdjustedTime(horaStr){
+  // horaStr puede ser: null, "HH:MM:SS" o "YYYY-MM-DD HH:MM:SS"
+  var d;
+  if(horaStr){
+    horaStr = String(horaStr).trim();
+    var full = horaStr.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})$/);
+    if(full){
+      // Interpretar como timestamp UTC del servidor -> crear Date en UTC
+      // usamos el sufijo Z para forzar interpretación UTC
+      d = new Date(full[1] + 'T' + full[2] + 'Z');
+    } else {
+      var hhmm = horaStr.match(/(\d{2}):(\d{2}):(\d{2})/);
+      if(hhmm){
+        d = new Date();
+        d.setHours(parseInt(hhmm[1],10), parseInt(hhmm[2],10), parseInt(hhmm[3],10), 0);
+      }
+    }
+  }
+  if(!d) d = new Date();
+  if(typeof CFG.tzCorrection === 'number' && CFG.tzCorrection !== 0){
+    d.setHours(d.getHours() + CFG.tzCorrection);
+  }
+  var hh = String(d.getHours()).padStart(2,'0');
+  var mm = String(d.getMinutes()).padStart(2,'0');
+  var ss = String(d.getSeconds()).padStart(2,'0');
+  return hh + ':' + mm + ':' + ss;
+}
 
 var historial     = [];
 var resumen       = { total:0, suma:0, max:null, min:null };
@@ -523,10 +554,10 @@ function consultarEstado(){
     success: function(d){
       if(!d || !d.ok) return;
       if(d.porcentaje !== null && d.porcentaje !== undefined){
-        actualizarTinaco(d.porcentaje);
-        colorearPorcentaje(d.estado);
-        actualizarResumen(d.porcentaje, d.timestamp ? d.timestamp.split(' ')[1] : null);
-      }
+          actualizarTinaco(d.porcentaje);
+          colorearPorcentaje(d.estado);
+          actualizarResumen(d.porcentaje, d.timestamp || d.hora || null);
+        }
       // Actualizar QR con el nombre real del bot si se pasa desde el server
       if(d.telegram_bot){ actualizarQR(d.telegram_bot); }
     }
@@ -599,8 +630,9 @@ function procesarRespuesta(data, esAuto){
     $('#dist-val').text(dist + ' cm');
     mostrarAlertaCard(pct, estado);
   }
-  agregarHistorial(dist, pct, estado);
-  actualizarResumen(pct, data.hora || null);
+  var hora = data.hora || data.timestamp || null;
+  agregarHistorial(dist, pct, estado, hora);
+  actualizarResumen(pct, hora);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -645,10 +677,7 @@ function mostrarAlertaCard(pct, estado){
 }
 
 function actualizarResumen(pct, hora){
-  if(!hora){
-    var n = new Date();
-    hora  = [n.getHours(),n.getMinutes(),n.getSeconds()].map(function(x){return String(x).padStart(2,'0');}).join(':');
-  }
+  var displayHora = _formatAdjustedTime(hora);
   resumen.total++;
   resumen.suma += pct;
   resumen.max   = resumen.max===null ? pct : Math.max(resumen.max, pct);
@@ -658,12 +687,11 @@ function actualizarResumen(pct, hora){
   $('#res-prom').text(prom + '%');
   $('#res-max').text(resumen.max + '%');
   $('#res-min').text(resumen.min + '%');
-  $('#res-ultima').text(pct + '%  ·  ' + hora);
+  $('#res-ultima').text(pct + '%  ·  ' + displayHora);
 }
 
-function agregarHistorial(dist, pct, estado){
-  var n    = new Date();
-  var hora = [n.getHours(),n.getMinutes(),n.getSeconds()].map(function(x){return String(x).padStart(2,'0');}).join(':');
+function agregarHistorial(dist, pct, estado, horaRaw){
+  var hora = _formatAdjustedTime(horaRaw);
   var color = estado==='critico' ? 'var(--critico)' : estado==='bajo' ? 'var(--warn)' : 'var(--azul)';
   historial.unshift({hora:hora, dist:dist, pct:pct, color:color});
   if(historial.length > CFG.maxHistorial) historial.pop();
