@@ -480,6 +480,8 @@ var CFG = {
   intervaloEstado: 60,       // segundos para consultar estado.php
   maxHistorial:    8
 };
+// Corrección de zona horaria en horas (ej: -6 restará 6 horas)
+CFG.tzCorrection = -6;
 
 var historial     = [];
 var resumen       = { total:0, suma:0, max:null, min:null };
@@ -515,6 +517,24 @@ function iniciarAutoMedicion(){
   }, CFG.intervaloAuto * 1000);
 }
 
+function _formatAdjustedTime(horaStr){
+  // horaStr puede ser "HH:MM:SS" o "YYYY-MM-DD HH:MM:SS" o null
+  var match = horaStr ? String(horaStr).match(/(\d{2}:\d{2}:\d{2})/) : null;
+  var d = new Date();
+  if(match){
+    var parts = match[1].split(':').map(function(x){return parseInt(x,10);});
+    d.setHours(parts[0]); d.setMinutes(parts[1]); d.setSeconds(parts[2]);
+  }
+  // aplicar corrección (puede ser 0)
+  if(typeof CFG.tzCorrection === 'number' && CFG.tzCorrection !== 0){
+    d.setHours(d.getHours() + CFG.tzCorrection);
+  }
+  var hh = String(d.getHours()).padStart(2,'0');
+  var mm = String(d.getMinutes()).padStart(2,'0');
+  var ss = String(d.getSeconds()).padStart(2,'0');
+  return hh + ':' + mm + ':' + ss;
+}
+
 // ══════════════════════════════════════════════════════════
 //  CONSULTAR ESTADO (para actualizar UI desde cron)
 // ══════════════════════════════════════════════════════════
@@ -526,7 +546,7 @@ function consultarEstado(){
       if(d.porcentaje !== null && d.porcentaje !== undefined){
         actualizarTinaco(d.porcentaje);
         colorearPorcentaje(d.estado);
-        actualizarResumen(d.porcentaje, d.timestamp ? d.timestamp.split(' ')[1] : null);
+        actualizarResumen(d.porcentaje, d.timestamp ? d.timestamp : null);
       }
       // Actualizar QR con el nombre real del bot si se pasa desde el server
       if(d.telegram_bot){ actualizarQR(d.telegram_bot); }
@@ -646,10 +666,7 @@ function mostrarAlertaCard(pct, estado){
 }
 
 function actualizarResumen(pct, hora){
-  if(!hora){
-    var n = new Date();
-    hora  = [n.getHours(),n.getMinutes(),n.getSeconds()].map(function(x){return String(x).padStart(2,'0');}).join(':');
-  }
+  var displayHora = _formatAdjustedTime(hora);
   resumen.total++;
   resumen.suma += pct;
   resumen.max   = resumen.max===null ? pct : Math.max(resumen.max, pct);
@@ -659,12 +676,11 @@ function actualizarResumen(pct, hora){
   $('#res-prom').text(prom + '%');
   $('#res-max').text(resumen.max + '%');
   $('#res-min').text(resumen.min + '%');
-  $('#res-ultima').text(pct + '%  ·  ' + hora);
+  $('#res-ultima').text(pct + '%  ·  ' + displayHora);
 }
 
 function agregarHistorial(dist, pct, estado){
-  var n    = new Date();
-  var hora = [n.getHours(),n.getMinutes(),n.getSeconds()].map(function(x){return String(x).padStart(2,'0');}).join(':');
+  var hora = _formatAdjustedTime(null);
   var color = estado==='critico' ? 'var(--critico)' : estado==='bajo' ? 'var(--warn)' : 'var(--azul)';
   historial.unshift({hora:hora, dist:dist, pct:pct, color:color});
   if(historial.length > CFG.maxHistorial) historial.pop();
