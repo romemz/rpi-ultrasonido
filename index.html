@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>Medidor Inteligente – UTC</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -259,30 +259,81 @@
       border-top: 1px solid var(--borde);
     }
 
-    /* ══════════ RESPONSIVE TABLET ≤ 900px ══════════ */
+    /* ══════════ TABLET ≤ 900px ══════════ */
     @media (max-width: 900px) {
       main { grid-template-columns: 1fr; padding: 14px; gap: 14px; }
-      .right-col { display: grid; grid-template-columns: 1fr 1fr; }
+      .right-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
       .tg-card   { grid-column: span 2; }
     }
 
-    /* ══════════ RESPONSIVE MÓVIL ≤ 600px ══════════ */
+    /* ══════════ MÓVIL ≤ 600px ══════════ */
     @media (max-width: 600px) {
+      /* Header */
       header { padding: 8px 12px; }
       .logo-text p { display: none; }
       .chip-auto .chip-lbl { display: none; }
-      main { padding: 10px; gap: 10px; }
+      .logo-circle { width: 32px; height: 32px; font-size: 11px; }
+
+      /* Layout principal: 1 columna, sin padding lateral excesivo */
+      main { padding: 8px; gap: 10px; }
       .card { padding: 14px; border-radius: 12px; }
+      .left-col  { gap: 10px; }
       .right-col { display: flex; flex-direction: column; gap: 10px; }
-      .tinaco-wrap { flex-direction: row; justify-content: center; gap: 16px; align-items: center; }
-      .tinaco-svg-area { width: clamp(100px, 38vw, 140px); }
-      .info-grid { grid-template-columns: 1fr 1fr; }
-      .qr-box svg { width: 80px; height: 80px; }
+
+      /* Tinaco: horizontal en móvil — tinaco a la izquierda, % a la derecha */
+      .tinaco-wrap {
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 14px;
+      }
+      .tinaco-svg-area { width: clamp(90px, 32vw, 130px); flex-shrink: 0; }
+      .pct-display .num { font-size: clamp(36px, 12vw, 54px); }
+      .pct-display .lbl { font-size: 10px; }
+      .dist-badge { font-size: 11px; padding: 5px 10px; }
+      .dist-badge .val { font-size: 14px; }
+
+      /* Botón medir */
+      .btn-medir { font-size: 14px; padding: 13px; min-height: 46px; }
+      .auto-info { font-size: 10px; }
+
+      /* Resumen del día */
+      .info-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+      .info-item { padding: 8px; }
+      .info-item .lbl { font-size: 8px; }
+      .info-item .val { font-size: 13px; }
+
+      /* Historial */
+      .historial-list { max-height: 180px; }
+      .historial-list li { font-size: 11px; padding: 6px 8px; }
+      .historial-list li .val { font-size: 12px; }
+
+      /* Niveles de alerta */
+      .nivel-ref { font-size: 11px; }
+
+      /* Tarjeta Telegram */
+      .tg-inner { grid-template-columns: 1fr !important; }
+      .tg-qr-column { order: -1; margin-bottom: 8px; }
+      .tg-qr-column .qr-box { width: 120px; padding: 8px; }
+      .qr-box svg { width: 90px !important; height: 90px !important; }
+      .tg-header-text h3 { font-size: 13px; }
+      .tg-alertas { gap: 4px; }
+      .tg-chip { font-size: 9px; padding: 3px 7px; }
+      .tg-steps { gap: 5px; }
+      .tg-step { font-size: 10px; }
+
+      /* Card title */
+      .card-title { font-size: 10px; margin-bottom: 10px; }
     }
 
-    @media (max-width: 380px) {
-      .tinaco-wrap { flex-direction: column; }
+    /* ══════════ MÓVIL PEQUEÑO ≤ 390px ══════════ */
+    @media (max-width: 390px) {
+      main { padding: 6px; }
+      .tinaco-wrap { flex-direction: column; gap: 10px; }
+      .tinaco-svg-area { width: clamp(110px, 50vw, 150px); }
+      .pct-display .num { font-size: clamp(40px, 14vw, 56px); }
       .btn-medir { font-size: 13px; padding: 12px; }
+      .info-grid { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
