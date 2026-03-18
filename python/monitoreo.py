@@ -15,7 +15,7 @@ ARCHIVO_PREV   = '/var/www/html/rpi-ultrasonido/estado_tinaco.prev.json'
 ARCHIVO_ESTADO = '/var/www/html/rpi-ultrasonido/estado_tinaco.json'
 
 TELEGRAM_TOKEN   = "8793840618:AAEOPUkxE9naCj86knQ3dPPIXwTO7roCGz4"
-TELEGRAM_CHAT_ID = "-5244203258"
+TELEGRAM_CHAT_ID = "-1003389881223"
 
 
 def log(msg):
