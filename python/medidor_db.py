@@ -9,8 +9,8 @@ resultado = subprocess.check_output(
 # Extraer solo el número de la distancia
 distancia = float(resultado)
 
-# Altura total del tinaco en cm  ← CAMBIADO de 25 a 24
-altura_tinaco = 24
+# Altura total del tinaco en cm  ← CAMBIADO de 25 a 22
+altura_tinaco = 22
 
 # Calcular porcentaje
 porcentaje = int((1 - distancia/altura_tinaco) * 100)
