@@ -63,7 +63,6 @@ def guardar_prev(datos):
 
 
 def escribir_estado(distancia, porcentaje):
-    """Escribe estado_tinaco.json para que el frontend lo lea."""
     datos = {
         "ok":         True,
         "distancia":  distancia,
@@ -89,21 +88,29 @@ def enviar_telegram(texto):
     log("Mensaje enviado a Telegram")
 
 
-# ── Rangos de alerta ──────────────────────────
-# Solo notifica al cruzar 50 %, 25 % y 0 %
-# No repite si ya está en el mismo rango
+# ── Rangos de alerta ──────────────────────────────────────────
+# lleno   → 85% o más   → "Tinaco casi lleno"  (notificación nueva)
+# mitad   → 26% – 50%   → "Tinaco a la mitad"
+# bajo    → 1%  – 25%   → "Nivel bajo de agua"
+# vacio   → 0%          → "Tinaco SIN AGUA"
+# normal  → 51% – 84%   → sin alerta
+# ─────────────────────────────────────────────────────────────
 def detectar_rango(p):
+    if p >= 85:
+        return "lleno"
     if p == 0:
         return "vacio"
     if 1 <= p <= 25:
         return "bajo"
     if 26 <= p <= 50:
         return "mitad"
-    return None   # > 50 → normal, sin alerta
+    return None   # 51–84 → normal, sin alerta
 
 
 def construir_mensaje(tipo, p):
     hora = datetime.now().strftime('%H:%M')
+    if tipo == "lleno":
+        return f"✅ Tinaco casi lleno — Lleno\nNivel actual: {p}%\n🕐 {hora}"
     if tipo == "mitad":
         return f"⚠️ Tinaco a la mitad\nNivel actual: {p}%\n🕐 {hora}"
     if tipo == "bajo":
@@ -115,7 +122,6 @@ def construir_mensaje(tipo, p):
 def main():
     log("=== Monitoreo iniciado ===")
 
-    # 1. Ejecutar sensor + guardar en BD
     salida = ejecutar_sensor()
     if not salida:
         log("Sin salida del sensor")
@@ -126,18 +132,15 @@ def main():
         log("No se pudo parsear la salida")
         return
 
-    log(f"Nivel actual: {porcentaje}% | Distancia: {distancia} cm")
+    log(f"Nivel: {porcentaje}% | Distancia: {distancia} cm")
 
-    # 2. Escribir estado para el frontend
+    # Escribir estado para el frontend
     escribir_estado(distancia, porcentaje)
 
-    # 3. Leer estado previo para comparar
-    prev = leer_prev()
-
-    # 4. Detectar rango actual
+    prev          = leer_prev()
     alerta_actual = detectar_rango(porcentaje)
 
-    # 5. Enviar Telegram SOLO si el rango CAMBIÓ
+    # Enviar Telegram SOLO si el rango CAMBIÓ
     if alerta_actual and alerta_actual != prev["alerta"]:
         mensaje = construir_mensaje(alerta_actual, porcentaje)
         try:
@@ -150,17 +153,22 @@ def main():
         if alerta_actual:
             log(f"Rango '{alerta_actual}' ya notificado → sin duplicado")
         else:
-            log("Nivel normal → sin alerta")
+            log("Nivel normal (51-84%) → sin alerta")
 
-    # 6. Si vuelve a estar por encima de 50 % → reiniciar alertas
-    if porcentaje >= 51:
+    # Reiniciar alertas bajas si el nivel sube a zona normal (51-84)
+    # Las alertas de "lleno" se reinician al bajar de 85
+    if 51 <= porcentaje <= 84:
+        if prev["alerta"] in ("vacio", "bajo", "mitad"):
+            prev["alerta"] = None
+            log("Nivel normal → alertas bajas reiniciadas")
+
+    # Reiniciar alerta de lleno cuando baja de 85
+    if porcentaje < 85 and prev["alerta"] == "lleno":
         prev["alerta"] = None
-        log("Nivel normal → alertas reiniciadas")
+        log("Bajó de 85% → alerta de lleno reiniciada")
 
-    # 7. Guardar estado
     prev["ultimo_nivel"] = porcentaje
     guardar_prev(prev)
-
     log("=== Monitoreo terminado ===")
 
 
